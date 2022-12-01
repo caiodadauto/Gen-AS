@@ -7,7 +7,6 @@ import yaml
 import torch
 import mlflow as mlf
 import matplotlib.pyplot as plt
-from hydra.utils import get_original_cwd
 from omegaconf import DictConfig, ListConfig
 from prettytable import PrettyTable
 
@@ -108,20 +107,20 @@ def mlf_get_model(run_id, device):
 
 def mlf_get_run(
     exp_name,
+    run_dir,
     exp_tags=None,
     run_tags=None,
     run_id=None,
     load_runs=False,
 ):
-    mlf.set_tracking_uri(f"file://{get_original_cwd()}/mlruns")
+    mlf.set_tracking_uri(f"file://{run_dir}/mlruns")
     client = mlf.tracking.MlflowClient()
     experiment = mlf.get_experiment_by_name(exp_name)
     if experiment is None:
         experiment_id = client.create_experiment(name=exp_name)
         experiment = mlf.get_experiment(experiment_id)
         if exp_tags is not None:
-            for name, tag in exp_tags.items():
-                mlf.set_experiment_tag(experiment_id, name, tag)
+            mlf.set_experiment_tags(exp_tags)
     else:
         experiment_id = experiment.experiment_id
     if run_id is None and not load_runs:

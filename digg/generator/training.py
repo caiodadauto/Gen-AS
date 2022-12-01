@@ -10,8 +10,7 @@ from torch.autograd import Variable
 from torch.optim.lr_scheduler import MultiStepLR
 from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
 
-from digg.generator.loading import create
-from digg.generator.preprocessing import split_data, GraphSequenceSampler
+from digg.generator.loading import create, split_data, GraphSequenceSampler
 from digg.generator.evaluation import bootstrap_eval
 from digg.generator.model import PlainGRU
 from digg.generator.mlf_utils import (
@@ -43,7 +42,6 @@ def train(cfg):
             data_kwargs.data_size,
             data_kwargs.min_num_node,
             data_kwargs.max_num_node,
-            data_kwargs.noise,
             data_kwargs.check_size,
         )
         train_graphs, val_graphs, test_graphs = split_data(
@@ -51,7 +49,7 @@ def train(cfg):
             rng,
             with_val=True,
             graph_type=data_kwargs.graph_type,
-            in_memory=data_kwargs.in_memory,
+            inplace=data_kwargs.inplace,
         )
         for stage, s_graphs in [
             ("train", train_graphs),
@@ -100,7 +98,7 @@ def train(cfg):
             output_size=1,
             device=device,
         ).to(device)
-        train(
+        run_training(
             data_loader,
             rnn,
             output,
@@ -130,8 +128,7 @@ def run_training(
 ):
     idx = 0
     epoch = 1
-    best_mmd_degree = 0
-    best_mmd_clustering = 0
+    best_mmd_values = {}
     optimizer_rnn = optim.Adam(list(rnn.parameters()), lr=train_kwargs.lr)
     optimizer_output = optim.Adam(list(output.parameters()), lr=train_kwargs.lr)
     scheduler_rnn = MultiStepLR(
@@ -140,6 +137,8 @@ def run_training(
     scheduler_output = MultiStepLR(
         optimizer_output, milestones=train_kwargs.milestones, gamma=train_kwargs.lr_rate
     )
+    for m in train_kwargs.metrics:
+        best_mmd_values[m] = 0
     while epoch <= train_kwargs.num_epochs:
         time_start = tm.time()
         avg_loss, raw_signatures = epoch_training(
@@ -176,31 +175,27 @@ def run_training(
                 raw_signatures,
             )
             mean_values, _, _ = bootstrap_eval(
-                val_graphs, pred_graphs, rng, ["degree", "clustering"], n_samples=100
+                val_graphs,
+                pred_graphs,
+                rng,
+                train_kwargs.metrics,
+                n_samples=train_kwargs.n_bootstrap_samples,
             )
-            if mean_values["degree"] > best_mmd_degree:
-                save_best(
-                    rnn,
-                    output,
-                    pred_graphs,
-                    mean_values["degree"],
-                    "mmd_degree",
-                    epoch,
-                    raw_signatures,
-                )
-            if mean_values["clustering"] > best_mmd_clustering:
-                save_best(
-                    rnn,
-                    output,
-                    pred_graphs,
-                    mean_values["clustering"],
-                    "mmd_clustering",
-                    epoch,
-                    raw_signatures,
-                )
-            mlf.log_metric("mmd_degree", mean_values["degree"], step=epoch)
-            mlf.log_metric("mmd_clustering", mean_values["clustering"], step=epoch)
-            idx = idx + 1 if (idx + 1) % 4 != 0 else 0
+            for m in train_kwargs.metrics:
+                if mean_values[m] > best_mmd_values[m]:
+                    save_best(
+                        rnn,
+                        output,
+                        pred_graphs,
+                        mean_values[m],
+                        f"mmd_{m}",
+                        epoch,
+                        raw_signatures,
+                    )
+                mlf.log_metric(f"mmd_{m}", mean_values[m], step=epoch)
+            print(train_kwargs.n_checkpoints)
+            print(type(train_kwargs.n_checkpoints))
+            idx = idx + 1 if (idx + 1) % train_kwargs.n_checkpoints != 0 else 0
         epoch += 1
 
 

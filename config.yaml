@@ -1,0 +1,44 @@
+seed: 12345
+hydra:
+  run:
+    dir: "." 
+  output_subdir: null
+mlflow:
+  exp_name: "DIGG"
+  exp_tags: null
+  run_tags: null
+  run_id: null
+data:
+  num_workers: 4 # Number workers to load data
+  graph_type: 'caida'
+  data_size: 90326
+  batch_size: 40
+  min_num_node: 12
+  max_num_node: 250
+  check_size: false
+  inplace: false
+  caida_source_path: 'data/caida/'
+model:
+  hidden_size_rnn: 128 # Hidden size for main RNN. For small versions, 64 is recommended
+  hidden_size_rnn_output: 16 # Hidden size for output RNN
+  embedding_size_rnn: 64 # The size for GRU input. For small versions, 32 is recommended
+  embedding_size_rnn_output: 8 # The embedding size for output rnn
+  embedding_size_output: 64 # The embedding size for output (MLP). For small versions, 32 is recommended
+  num_layer: 4
+train:
+  num_epochs: 1000
+  epochs_test: 100
+  epochs_test_start: 1
+  test_batch_size: 40
+  test_total_size: 500
+  lr: 0.003
+  lr_rate: 0.3
+  n_checkpoints: 4
+  milestones: [300, 500]
+  n_bootstrap_samples: 100
+  metrics: ["degree"]
+evaluation:
+  save_dir: 'data/evaluation'
+  baseline: 'baseline'
+  n_bootstrap_samples: 100
+  metrics: ["assortativity"] # "degree", "clustering", "betweenness", "pagerank"]

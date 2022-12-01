@@ -95,12 +95,12 @@ class PlainGRU(nn.Module):
 
         for name, param in self.rnn.named_parameters():
             if "bias" in name:
-                nn.init.constant(param, 0.25)
+                nn.init.constant_(param, 0.25)
             elif "weight" in name:
-                nn.init.xavier_uniform(param, gain=nn.init.calculate_gain("sigmoid"))
+                nn.init.xavier_uniform_(param, gain=nn.init.calculate_gain("sigmoid"))
         for m in self.modules():
             if isinstance(m, nn.Linear):
-                m.weight.data = init.xavier_uniform(
+                m.weight.data = init.xavier_uniform_(
                     m.weight.data, gain=nn.init.calculate_gain("relu")
                 )
 

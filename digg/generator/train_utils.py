@@ -1,13 +1,14 @@
+import warnings
+
 import torch
 import mlflow as mlf
 import torch.nn.functional as F
 
-from digg.generator.evaluation import synthesize_graph
+from digg.generator.evaluation import synthesize_graph_sample
 from digg.generator.mlf_utils import (
     mlf_save_text,
     mlf_save_pickle,
 )
-
 
 
 def binary_cross_entropy_weight(
@@ -40,18 +41,20 @@ def save_model(rnn, output, model_dir, raw_signatures):
     output_signature = mlf.models.infer_signature(
         raw_signatures["output"][0], raw_signatures["output"][1]
     )
-    mlf.pytorch.log_model(
-        rnn,
-        f"{model_dir}/rnn",
-        signature=rnn_signature,
-        pip_requirements=["torch"],
-    )
-    mlf.pytorch.log_model(
-        output,
-        f"{model_dir}/output",
-        signature=output_signature,
-        pip_requirements=["torch"],
-    )
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        mlf.pytorch.log_model(
+            rnn,
+            f"{model_dir}/rnn",
+            signature=rnn_signature,
+            pip_requirements=["torch"],
+        )
+        mlf.pytorch.log_model(
+            output,
+            f"{model_dir}/output",
+            signature=output_signature,
+            pip_requirements=["torch"],
+        )
 
 
 def save_best(rnn, output, pred_graphs, best_value, metric_name, epoch, raw_signatures):
@@ -75,7 +78,7 @@ def checkpoint(
     test_total_size,
     raw_signatures,
 ):
-    pred_graphs = synthesize_graph(
+    pred_graphs = synthesize_graph_sample(
         rnn,
         output,
         min_num_node,

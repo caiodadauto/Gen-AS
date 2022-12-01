@@ -140,7 +140,7 @@ def synthesize_graph_sample(
     test_total_size,
 ):
     G_pred = []
-    bar = tqdm(total=test_total_size, desc="Creating synthetic sample")
+    bar = tqdm(total=test_total_size, desc="Creating synthetic samples")
     while len(G_pred) < test_total_size:
         G_pred_step = synthesize_graph(
             rnn,

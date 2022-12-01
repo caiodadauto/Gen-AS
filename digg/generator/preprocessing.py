@@ -1,9 +1,11 @@
-import torch
+import os
+
 import numpy as np
 import networkx as nx
+import graph_tool as gt
 from tqdm import tqdm
 
-from digg.generator.loading import GraphsCAIDA
+from digg.generator.graph_utils import from_gt_to_nx
 
 
 def bfs_seq(G, start_id):
@@ -102,42 +104,6 @@ def decode_adj(adj_output):
     return adj_full
 
 
-class GraphSequenceSampler(torch.utils.data.Dataset):
-    def __init__(self, G_list, max_num_node, max_prev_node):
-        self.G_list = G_list
-        self.max_num_node = max_num_node
-        self.max_prev_node = max_prev_node
-
-    def __len__(self):
-        return len(self.G_list)
-
-    def __getitem__(self, idx):
-        adj = np.asarray(nx.to_numpy_matrix(self.G_list[idx]))
-        x_batch = np.zeros(
-            (self.max_num_node, self.max_prev_node)
-        )  # here zeros are padded for small graph
-        x_batch[0, :] = 1  # the first input token is all ones
-        y_batch = np.zeros(
-            (self.max_num_node, self.max_prev_node)
-        )  # here zeros are padded for small graph
-        # generate input x, y pairs
-        len_batch = adj.shape[0]
-        x_idx = np.random.permutation(adj.shape[0])
-        adj = adj[np.ix_(x_idx, x_idx)]
-        adj = np.asmatrix(adj)
-        G = nx.from_numpy_matrix(adj)
-        # then do bfs in the permuted G
-        start_idx = np.random.randint(adj.shape[0])
-        x_idx = np.array(bfs_seq(G, start_idx))
-        adj = adj[np.ix_(x_idx, x_idx)]
-        adj_encoded = encode_adj(adj.copy(), max_prev_node=self.max_prev_node)
-        # get x and y and adj
-        # for small graph the rest are zero padded
-        y_batch[0 : adj_encoded.shape[0], :] = adj_encoded
-        x_batch[1 : adj_encoded.shape[0] + 1, :] = adj_encoded
-        return {"x": x_batch, "y": y_batch, "len": len_batch}
-
-
 def get_data_params(G_list, iter=20000, topk=10):
     adj_all = []
     len_all = []
@@ -169,31 +135,25 @@ def get_data_params(G_list, iter=20000, topk=10):
     return max_prev_node, max(len_all)
 
 
-def split_data(graphs, rng, with_val=False, graph_type=None, inplace=False):
-    num_graphs = len(graphs)
-    graph_index = np.arange(num_graphs)
-    test_size = int(0.15 * num_graphs)
-    if with_val:
-        val_size = int(0.15 * num_graphs)
-    else:
-        val_size = 0
-    rng.shuffle(graph_index)
-    if graph_type == "caida":
-        train_graphs = GraphsCAIDA(
-            list=[graphs._list[i] for i in graph_index[(test_size + val_size) :]],
-            from_path=False,
-            inplace=inplace,
-        )
-        test_graphs = GraphsCAIDA(
-            list=[graphs._list[i] for i in graph_index[0:test_size]],
-            from_path=False,
-            inplace=inplace,
-        )
-        val_graphs = GraphsCAIDA(
-            list=[
-                graphs._list[i] for i in graph_index[test_size : (val_size + test_size)]
-            ],
-            from_path=False,
-            inplace=inplace,
-        )
-    return train_graphs, val_graphs, test_graphs
+def get_caida_params(caida_source_path, data_size, min_num_node, max_num_node):
+    """
+    get caida dataset information
+    :param caida_source_path: path to caida graph in gt format
+    :param min_num_node: minimum number of nodes to be considered
+    :param max_num_node: maximum number of nodes to be considered
+    :return:
+    """
+    G_list = []
+    bar = tqdm(total=data_size, desc="Loading caida")
+    min_num_node = 0 if min_num_node is None else min_num_node
+    max_num_node = 1000 if max_num_node is None else max_num_node
+    graph_names = [p for p in os.listdir(caida_source_path) if p.endswith(".xz.gt")]
+    for name in graph_names[0:data_size]:
+        graph_path = os.path.join(caida_source_path, name)
+        g = from_gt_to_nx(gt.load_graph(graph_path))
+        num_nodes = g.number_of_nodes()
+        if num_nodes >= min_num_node and num_nodes <= max_num_node:
+            G_list.append(g)
+        bar.update()
+    bar.close()
+    return get_data_params(G_list)
