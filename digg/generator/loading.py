@@ -59,8 +59,8 @@ def create(
             max_num_nodes,
             check_size=check_size,
         )
-        max_prev_node = 246  # Use None for compute estimation
-    return graphs, max_prev_node, max_num_nodes
+        # max_prev_node = 246  # Use None for compute estimation
+    return graphs
 
 
 class GraphsCAIDA(MutableSequence):

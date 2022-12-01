@@ -25,18 +25,18 @@ from digg.generator.train_utils import (
 )
 
 
-def train(cfg):
-    seed = cfg.seed
+def train(cfg, run_dir):
+    seed = cfg.training.seed
     mlf_kwargs = cfg.mlflow
     data_kwargs = cfg.data
     model_kwargs = cfg.model
-    train_kwargs = cfg.train
+    train_kwargs = cfg.training
     rng = np.random.default_rng(seed)
-    mlf_run = mlf_get_run(**mlf_kwargs)
+    mlf_run = mlf_get_run(run_dir=run_dir, **mlf_kwargs)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     with mlf.start_run(run_id=mlf_run.info.run_id):
         mlf_log_from_omegaconf_dict(cfg)
-        graphs, max_prev_node, _ = create(
+        graphs = create(
             data_kwargs.graph_type,
             data_kwargs.caida_source_path,
             data_kwargs.data_size,
@@ -64,7 +64,7 @@ def train(cfg):
 
         dataset = GraphSequenceSampler(
             train_graphs,
-            max_prev_node=max_prev_node,
+            max_prev_node=data_kwargs.max_prev_node,
             max_num_node=data_kwargs.max_num_node,
         )
         sample_strategy = torch.utils.data.sampler.WeightedRandomSampler(
@@ -79,7 +79,7 @@ def train(cfg):
             sampler=sample_strategy,
         )
         rnn = PlainGRU(
-            input_size=max_prev_node,
+            input_size=data_kwargs.max_prev_node,
             embedding_size=model_kwargs.embedding_size_rnn,
             hidden_size=model_kwargs.hidden_size_rnn,
             num_layers=model_kwargs.num_layer,
@@ -108,7 +108,7 @@ def train(cfg):
             num_layer=model_kwargs.num_layer,
             min_num_node=data_kwargs.min_num_node,
             max_num_node=data_kwargs.max_num_node,
-            max_prev_node=max_prev_node,
+            max_prev_node=data_kwargs.max_prev_node,
             train_kwargs=train_kwargs,
         )
 
@@ -193,8 +193,6 @@ def run_training(
                         raw_signatures,
                     )
                 mlf.log_metric(f"mmd_{m}", mean_values[m], step=epoch)
-            print(train_kwargs.n_checkpoints)
-            print(type(train_kwargs.n_checkpoints))
             idx = idx + 1 if (idx + 1) % train_kwargs.n_checkpoints != 0 else 0
         epoch += 1
 

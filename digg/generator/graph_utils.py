@@ -22,7 +22,7 @@ def from_gt_to_nx(gt_graph):
     return nx_graph
 
 
-def get_graph(adj, min_num_node):
+def get_graph(adj, min_num_node, max_num_nodes=np.infty):
     """
     get a graph from zero-padded adj
     :param adj:

@@ -5,7 +5,8 @@ import click
 from hydra import compose, initialize_config_dir
 from omegaconf import open_dict
 
-from digg.generator.training import train as generator_train
+from digg.generator.training import train as _train
+from digg.generator.evaluation import generate as _generate
 
 
 @click.group()
@@ -55,10 +56,38 @@ def train(ctx):
         version_base=None, config_dir=ctx.obj["config_dir"], job_name="train"
     )
     cfg = compose(config_name=ctx.obj["config_name"])
-    with open_dict(cfg):
-        cfg.mlflow.run_dir = ctx.obj["mlf_dir"]
-    generator_train(cfg)
+    _train(cfg, ctx.obj["mlf_dir"])
 
+@main.command()
+@click.pass_context
+@click.option(
+    "-m",
+    "--min-number-nodes",
+    type=int,
+    default=None,
+    help="Minimum number of nodes. If not provided, the value in configuration file will be considered.",
+)
+@click.option(
+    "-M",
+    "--max-number-nodes",
+    type=int,
+    default=None,
+    help="Maximum number of nodes. If not provided, the value in configuration file will be considered.",
+)
+@click.option(
+    "-n",
+    "--number-graphs",
+    type=int,
+    default=None,
+    help="Number of synthetic graphs to be generated. If not provided, the value in configuration file will be considered."
+)
+def generate(ctx, min_number_nodes, max_number_nodes, number_graphs):
+    """Generate synthetic graphs based on the digg configurations."""
+    initialize_config_dir(
+        version_base=None, config_dir=ctx.obj["config_dir"], job_name="train"
+    )
+    cfg = compose(config_name=ctx.obj["config_name"])
+    _generate(cfg, number_graphs, min_number_nodes, max_number_nodes, ctx.obj["mlf_dir"])
 
 # @click.command()
 # @click.option(
@@ -84,37 +113,6 @@ def train(ctx):
 #         click.echo(f"Evaluation")
 #
 #
-# @click.command()
-# @click.argument(
-#     "number_nodes",
-#     type=str,
-# )
-# @click.argument(
-#     "number_graphs",
-#     type=str,
-# )
-# @click.option(
-#     "-c",
-#     "--config-path",
-#     type=str,
-#     default=join(expanduser("~"), ".config", "digg_dggm"),
-# )
-# @click.option("-n", "--config-name", type=str, default="config")
-# def generate(number_nodes, number_graphs, config_dir, config_name):
-#     """Generate synthetic graphs based on the digg configurations.
-#
-#     \b
-#     Args:
-#         CONFIG_DIR: Path to the directory with configuraion file, default `$HOME/.config/digg_dggm/`
-#         CONFIG_NAME: Configuration file name, default `config.yaml`
-#     """
-#
-#     with initialize_config_dir(
-#         config_dir=config_dir, version_base=None, job_name="evaluate"
-#     ):
-#         cfg = compose(config_name=config_name)
-#         click.echo(f"Generation")
-
 
 if __name__ == "__main__":
     main()

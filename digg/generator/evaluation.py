@@ -1,3 +1,5 @@
+from genericpath import exists
+from os import makedirs
 from os.path import join, isdir, basename
 
 import torch
@@ -16,10 +18,46 @@ from digg.generator.eval_utils import sample_sigmoid, save_obj
 from digg.generator.graph_utils import from_gt_to_nx, get_graph
 from digg.generator.mlf_utils import (
     mlf_get_run,
+    mlf_get_model,
     mlf_fix_artifact_path,
     mlf_get_data_paths,
     mlf_get_synthetic_graph,
 )
+
+
+def generate(cfg, num_graphs, min_num_node, max_num_node, run_dir):
+    mlf_fix_artifact_path()
+    rng = np.random.default_rng(cfg.generation.seed)
+    mlf_run = mlf_get_run(exp_name=cfg.mlflow.exp_name, run_dir=run_dir, load_runs=True)
+    min_num_node = (
+        int(mlf_run.data.params["data.min_num_node"])
+        if min_num_node is None
+        else min_num_node
+    )
+    max_num_node = (
+        int(mlf_run.data.params["data.max_num_node"])
+        if max_num_node is None
+        else max_num_node
+    )
+    max_prev_node = int(mlf_run.data.params["data.max_prev_node"])
+    num_layer = int(mlf_run.data.params["model.num_layer"])
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    with mlf.start_run(run_id=mlf_run.info.run_id):
+        rnn, output = mlf_get_model(mlf_run, device)
+        synthetic_graphs = synthesize_graph_sample(
+            rnn,
+            output,
+            min_num_node,
+            max_num_node,
+            max_prev_node,
+            num_layer,
+            device,
+            cfg.generation.test_batch_size,
+            cfg.generation.test_total_size if num_graphs is None else num_graphs,
+        )
+        makedirs(cfg.generation.save_dir, exist_ok=True)
+        for i, g in enumerate(synthetic_graphs):
+            nx.write_gpickle(g, join(cfg.generation.save_dir, f"{i}.gpickle"))
 
 
 def eval(exp_name, metrics, seed, baseline, n_samples, save_dir):

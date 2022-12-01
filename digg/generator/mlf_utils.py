@@ -92,8 +92,13 @@ def mlf_get_synthetic_graph(stage):
     return mlf_load_pickle(os.path.join(stage, "synthetic_graphs"))
 
 
-def mlf_get_model(run_id, device):
-    model_uri = f"runs:/{run_id}/best_mmd_degree"
+def mlf_get_model(run, device):
+    metrics = [k for k in run.data.metrics.keys() if k.startswith("mmd")]
+    print("Found saved models:")
+    for i, m in enumerate(metrics):
+        print(f"\t{i}. Model for the best {m}")
+    idx = int(input("Choose the number of the desired model: "))
+    model_uri = f"runs:/{run.info.run_id}/best_{metrics[idx]}"
     rnn = mlf.pytorch.load_model(
         os.path.join(model_uri, f"rnn"), map_location=torch.device(device)
     )
@@ -130,35 +135,46 @@ def mlf_get_run(
     else:
         if load_runs:
             runs_df = mlf.search_runs(experiment_ids=[experiment_id])
-            t = PrettyTable(
-                [
-                    "",
-                    "Status",
-                    "Graph Type",
-                    "Final Loss",
-                    "Final Degree MMD",
-                    "Final Clustering MMD",
-                    "Duration (h)",
-                    "Start Time",
-                ]
+            metric_columns = []
+            for c in runs_df.columns:
+                if c.startswith("params.train.metrics"):
+                    metric_columns.append(c)
+            metrics = (
+                runs_df[metric_columns]
+                .melt()
+                .loc[lambda d: ~d["value"].isnull()]
+                .drop_duplicates(subset=["value"])
+                .set_index("variable")["value"]
             )
+            header = [
+                "",
+                "Status",
+                "Start time",
+                "Duration (h)",
+                "Graph type",
+                "Final loss",
+            ]
+            for c in metric_columns:
+                header.append(f"Final {metrics[c]} MMD")
+            t = PrettyTable(header)
             for i, row in runs_df.iterrows():
                 try:
-                    duration = (row["end_time"] - row["start_time"]).total_seconds() / 3600
+                    duration = (
+                        row["end_time"] - row["start_time"]
+                    ).total_seconds() / 3600
                 except TypeError:
                     duration = 0.0
-                t.add_row(
-                    [
-                        i,
-                        row["status"],
-                        row["params.data.graph_type"],
-                        "{:.3f}".format(row["metrics.loss"]),
-                        "{:.3f}".format(row["metrics.mmd_degree"]),
-                        "{:.3f}".format(row["metrics.mmd_clustering"]),
-                        "{:.3f}".format(duration),
-                        row["start_time"].strftime("%Y-%m-%d %H:%M:%S"),
-                    ]
-                )
+                table_row = [
+                    i,
+                    row["status"],
+                    row["params.data.graph_type"],
+                    "{:.3f}".format(duration),
+                    row["start_time"].strftime("%Y-%m-%d %H:%M:%S"),
+                    "{:.3f}".format(row["metrics.loss"]),
+                ]
+                for m in metrics:
+                    table_row.append("{:.3f}".format(row[f"metrics.mmd_{m}"]))
+                t.add_row(table_row)
             print(t)
             idx = int(input("Choose the number of the desired run: "))
             run_id = runs_df.loc[idx, "run_id"]
