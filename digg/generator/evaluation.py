@@ -1,5 +1,6 @@
-from genericpath import exists
+import random
 from os import makedirs
+from datetime import datetime
 from os.path import join, isdir, basename
 
 import torch
@@ -27,7 +28,15 @@ from digg.generator.mlf_utils import (
 
 def generate(cfg, num_graphs, min_num_node, max_num_node, run_dir):
     mlf_fix_artifact_path()
-    rng = np.random.default_rng(cfg.generation.seed)
+    seed = cfg.generation.seed
+    save_dir = join(
+        cfg.generation.save_dir, datetime.strftime(datetime.now(), "%y%m%d%H%M%S")
+    )
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
+        # rng = np.random.default_rng(seed)
+        torch.manual_seed(seed)
     mlf_run = mlf_get_run(exp_name=cfg.mlflow.exp_name, run_dir=run_dir, load_runs=True)
     min_num_node = (
         int(mlf_run.data.params["data.min_num_node"])
@@ -55,9 +64,9 @@ def generate(cfg, num_graphs, min_num_node, max_num_node, run_dir):
             cfg.generation.test_batch_size,
             cfg.generation.test_total_size if num_graphs is None else num_graphs,
         )
-        makedirs(cfg.generation.save_dir, exist_ok=True)
+        makedirs(save_dir, exist_ok=True)
         for i, g in enumerate(synthetic_graphs):
-            nx.write_gpickle(g, join(cfg.generation.save_dir, f"{i}.gpickle"))
+            nx.write_gpickle(g, join(save_dir, f"{i}.gpickle"))
 
 
 def eval(exp_name, metrics, seed, baseline, n_samples, save_dir):
@@ -66,7 +75,11 @@ def eval(exp_name, metrics, seed, baseline, n_samples, save_dir):
     mmd_data["metric"] = []
     mmd_data["value"] = []
     mlf_fix_artifact_path()
-    rng = np.random.default_rng(seed)
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
+        rng = np.random.default_rng(seed)
+        torch.manual_seed(seed)
     mlf_run = mlf_get_run(exp_name=exp_name, load_runs=True)
     with mlf.start_run(run_id=mlf_run.info.run_id):
         _, _, test_paths = mlf_get_data_paths()

@@ -1,3 +1,4 @@
+import random
 import time as tm
 from functools import reduce
 
@@ -31,7 +32,11 @@ def train(cfg, run_dir):
     data_kwargs = cfg.data
     model_kwargs = cfg.model
     train_kwargs = cfg.training
-    rng = np.random.default_rng(seed)
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
+        rng = np.random.default_rng(seed)
+        torch.manual_seed(seed)
     mlf_run = mlf_get_run(run_dir=run_dir, **mlf_kwargs)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     with mlf.start_run(run_id=mlf_run.info.run_id):
