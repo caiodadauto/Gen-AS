@@ -9,7 +9,6 @@ mlflow:
   run_id: null
 data:
   num_workers: 4 # Number workers to load data
-  graph_type: 'caida'
   data_size: 90326
   batch_size: 40
   min_num_node: 12
@@ -17,7 +16,7 @@ data:
   max_prev_node: 246
   check_size: false
   inplace: false
-  caida_source_path: 'data/caida/'
+  source_path: 'data/'
 model:
   hidden_size_rnn: 128 # Hidden size for main RNN. For small versions, 64 is recommended
   hidden_size_rnn_output: 16 # Hidden size for output RNN

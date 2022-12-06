@@ -135,21 +135,21 @@ def get_data_params(G_list, iter=20000, topk=10):
     return max_prev_node, max(len_all)
 
 
-def get_caida_params(caida_source_path, data_size, min_num_node, max_num_node):
+def get_graph_params(source_path, data_size, min_num_node, max_num_node):
     """
-    get caida dataset information
-    :param caida_source_path: path to caida graph in gt format
+    get graph dataset information
+    :param source_path: path to data graph in gt format
     :param min_num_node: minimum number of nodes to be considered
     :param max_num_node: maximum number of nodes to be considered
     :return:
     """
     G_list = []
-    bar = tqdm(total=data_size, desc="Loading caida")
+    bar = tqdm(total=data_size, desc="Loading graph")
     min_num_node = 0 if min_num_node is None else min_num_node
     max_num_node = 1000 if max_num_node is None else max_num_node
-    graph_names = [p for p in os.listdir(caida_source_path) if p.endswith(".xz.gt")]
+    graph_names = [p for p in os.listdir(source_path) if p.endswith(".xz.gt")]
     for name in graph_names[0:data_size]:
-        graph_path = os.path.join(caida_source_path, name)
+        graph_path = os.path.join(source_path, name)
         g = from_gt_to_nx(gt.load_graph(graph_path))
         num_nodes = g.number_of_nodes()
         if num_nodes >= min_num_node and num_nodes <= max_num_node:

@@ -11,7 +11,7 @@ from digg.generator.graph_utils import from_gt_to_nx
 from digg.generator.preprocessing import bfs_seq, encode_adj
 
 
-def split_data(graphs, rng, with_val=False, graph_type=None, inplace=False):
+def split_data(graphs, rng, with_val=False, inplace=False):
     num_graphs = len(graphs)
     graph_index = np.arange(num_graphs)
     test_size = int(0.15 * num_graphs)
@@ -20,53 +20,53 @@ def split_data(graphs, rng, with_val=False, graph_type=None, inplace=False):
     else:
         val_size = 0
     rng.shuffle(graph_index)
-    if graph_type == "caida":
-        train_graphs = GraphsCAIDA(
-            list=[graphs._list[i] for i in graph_index[(test_size + val_size) :]],
-            from_path=False,
-            inplace=inplace,
-        )
-        test_graphs = GraphsCAIDA(
-            list=[graphs._list[i] for i in graph_index[0:test_size]],
-            from_path=False,
-            inplace=inplace,
-        )
-        val_graphs = GraphsCAIDA(
-            list=[
-                graphs._list[i] for i in graph_index[test_size : (val_size + test_size)]
-            ],
-            from_path=False,
-            inplace=inplace,
-        )
+    train_graphs = Graphs(
+        list=[graphs._list[i] for i in graph_index[(test_size + val_size) :]],
+        from_path=False,
+        inplace=inplace,
+        ext="xz.gt"
+    )
+    test_graphs = Graphs(
+        list=[graphs._list[i] for i in graph_index[0:test_size]],
+        from_path=False,
+        inplace=inplace,
+        ext="xz.gt"
+    )
+    val_graphs = Graphs(
+        list=[
+            graphs._list[i] for i in graph_index[test_size : (val_size + test_size)]
+        ],
+        from_path=False,
+        inplace=inplace,
+        ext="xz.gt"
+    )
     return train_graphs, val_graphs, test_graphs
 
 
 # max_prev_node: Max previous node that looks back (if none, automatically defined)
 def create(
-    dataset,
-    caida_source_path,
+    source_path,
     data_size,
     min_num_nodes,
     max_num_nodes,
     check_size,
 ):
     graphs = []
-    if dataset == "caida":
-        graphs = GraphsCAIDA(
-            caida_source_path,
-            data_size,
-            min_num_nodes,
-            max_num_nodes,
-            check_size=check_size,
-        )
-        # max_prev_node = 246  # Use None for compute estimation
+    graphs = Graphs(
+        source_path,
+        data_size,
+        min_num_nodes,
+        max_num_nodes,
+        check_size=check_size,
+    )
+    # max_prev_node = 246  # Use None for compute estimation
     return graphs
 
 
-class GraphsCAIDA(MutableSequence):
+class Graphs(MutableSequence):
     def __init__(
         self,
-        caida_source_path=None,
+        source_path=None,
         data_size=None,
         min_num_node=None,
         max_num_node=None,
@@ -74,8 +74,9 @@ class GraphsCAIDA(MutableSequence):
         from_path=True,
         check_size=True,
         inplace=False,
+        ext="xz.gt"
     ):
-        super(GraphsCAIDA, self).__init__()
+        super(Graphs, self).__init__()
         self._list = []
         self._inplace = inplace
         if from_path:
@@ -84,10 +85,10 @@ class GraphsCAIDA(MutableSequence):
             elif max_num_node is not None and min_num_node is None:
                 min_num_node = 0
             for graph_name in tqdm(
-                os.listdir(caida_source_path), desc="Loading caida graphs"
+                os.listdir(source_path), desc="Loading data graphs"
             ):
-                if graph_name.endswith(".xz.gt"):
-                    graph_path = os.path.join(caida_source_path, graph_name)
+                if graph_name.endswith(f".{ext}"):
+                    graph_path = os.path.join(source_path, graph_name)
                     if min_num_node is None and max_num_node is None:
                         self._list.append(graph_path)
                     elif check_size:
@@ -103,7 +104,7 @@ class GraphsCAIDA(MutableSequence):
             self._list = list if list is not None else []
         if self._inplace:
             self._graphs = []
-            for graph_path in tqdm(self._list, desc="Adding caida data to memory"):
+            for graph_path in tqdm(self._list, desc="Adding data graphs to memory"):
                 G = from_gt_to_nx(gt.load_graph(graph_path))
                 self._graphs.append(G)
 

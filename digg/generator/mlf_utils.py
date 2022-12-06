@@ -69,7 +69,7 @@ def mlf_get_data_paths():
     stages = ["train", "validation", "test"]
     for stage in stages:
         paths[stage] = mlf_load_text(
-            os.path.join("caida_graphs", f"{stage}_graphs.csv")
+            os.path.join("graphs", f"{stage}_graphs.csv")
         )
     return paths["train"], paths["validation"], paths["test"]
 
@@ -151,7 +151,6 @@ def mlf_get_run(
                 "Status",
                 "Start time",
                 "Duration (h)",
-                "Graph type",
                 "Final loss",
             ]
             for c in metric_columns:
@@ -167,9 +166,8 @@ def mlf_get_run(
                 table_row = [
                     i,
                     row["status"],
-                    row["params.data.graph_type"],
-                    "{:.3f}".format(duration),
                     row["start_time"].strftime("%Y-%m-%d %H:%M:%S"),
+                    "{:.3f}".format(duration),
                     "{:.3f}".format(row["metrics.loss"]),
                 ]
                 for m in metrics:

@@ -70,12 +70,12 @@ def eval(exp_name, metrics, seed, baseline, n_samples, save_dir):
     mlf_run = mlf_get_run(exp_name=exp_name, load_runs=True)
     with mlf.start_run(run_id=mlf_run.info.run_id):
         _, _, test_paths = mlf_get_data_paths()
-        print("Getting CAIDA graphs for test...")
-        test_caida_graphs = [
+        print("Getting data graphs for test...")
+        test_data_graphs = [
             from_gt_to_nx(gt.load_graph(p)) for p in test_paths if p.endswith(".xz.gt")
         ]
         get_metrics(
-            test_caida_graphs,
+            test_data_graphs,
             metrics,
             ["best_mmd_degree"],  # , "best_mmd_clustering"],
             mlf_get_synthetic_graph,
@@ -96,7 +96,7 @@ def eval(exp_name, metrics, seed, baseline, n_samples, save_dir):
         if p.endswith(".gpickle")
     ]
     get_metrics(
-        test_caida_graphs,
+        test_data_graphs,
         metrics,
         graph_set_paths,
         graph_fn,
@@ -120,10 +120,10 @@ def bootstrap_eval(true_graphs, pred_graphs, rng, metrics, n_samples=2000):
         mmd_values[metric] = []
     bar = tqdm(total=n_samples, desc="Bootstraping")
     for _ in range(n_samples):
-        sampled_caida_idx = rng.choice(
+        sampled_data_idx = rng.choice(
             true_graph_idx, replace=True, size=num_pred_graphs
         )
-        sampled_true_graphs = [true_graphs[i] for i in sampled_caida_idx]
+        sampled_true_graphs = [true_graphs[i] for i in sampled_data_idx]
         for metric in metrics:
             bar.set_postfix(metric=metric)
             mmd = get_mmd(sampled_true_graphs, pred_graphs, metric)

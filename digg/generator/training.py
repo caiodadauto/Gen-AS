@@ -37,8 +37,7 @@ def train(cfg, run_dir):
     with mlf.start_run(run_id=mlf_run.info.run_id):
         mlf_log_from_omegaconf_dict(cfg)
         graphs = create(
-            data_kwargs.graph_type,
-            data_kwargs.caida_source_path,
+            data_kwargs.source_path,
             data_kwargs.data_size,
             data_kwargs.min_num_node,
             data_kwargs.max_num_node,
@@ -48,7 +47,6 @@ def train(cfg, run_dir):
             graphs,
             rng,
             with_val=True,
-            graph_type=data_kwargs.graph_type,
             inplace=data_kwargs.inplace,
         )
         for stage, s_graphs in [
@@ -58,7 +56,7 @@ def train(cfg, run_dir):
         ]:
             mlf_save_text(
                 f"{stage}_graphs.csv",
-                "caida_graphs",
+                "graphs",
                 reduce(lambda a, b: f"{a}\n{b}", s_graphs._list),
             )
 
