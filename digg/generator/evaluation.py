@@ -1,7 +1,5 @@
-import random
 from os import makedirs
-from datetime import datetime
-from os.path import join, isdir, basename
+from os.path import join
 
 import torch
 import numpy as np
@@ -10,34 +8,60 @@ import mlflow as mlf
 import networkx as nx
 import graph_tool as gt
 from tqdm import tqdm
-from os import listdir
 from torch.autograd import Variable
 
 from digg.generator.metrics import get_mmd
 from digg.generator.preprocessing import decode_adj
-from digg.generator.eval_utils import sample_sigmoid, save_obj
+from digg.generator.eval_utils import sample_sigmoid, plot_metrics
 from digg.generator.graph_utils import from_gt_to_nx, get_graph
 from digg.generator.mlf_utils import (
-    mlf_get_run,
     mlf_get_model,
-    mlf_fix_artifact_path,
+    mlf_get_all_run_models,
     mlf_get_data_paths,
-    mlf_get_synthetic_graph,
+    mlf_set_env,
+    mlf_save_text,
+    mlf_save_pickle,
 )
 
 
 def generate(cfg, num_graphs, min_num_node, max_num_node, run_dir):
-    mlf_fix_artifact_path()
-    seed = cfg.generation.seed
-    save_dir = join(
-        cfg.generation.save_dir, datetime.strftime(datetime.now(), "%y%m%d%H%M%S")
+    _, mlf_run, save_dir = mlf_set_env(
+        cfg.generation.seed,
+        run_dir,
+        cfg.mlflow.exp_name,
+        root_dir=cfg.generation.save_dir,
+        load_runs=True,
+        fix_path=True,
     )
-    if seed is not None:
-        random.seed(seed)
-        np.random.seed(seed)
-        # rng = np.random.default_rng(seed)
-        torch.manual_seed(seed)
-    mlf_run = mlf_get_run(exp_name=cfg.mlflow.exp_name, run_dir=run_dir, load_runs=True)
+    with mlf.start_run(run_id=mlf_run.info.run_id):
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        rnn, output, _ = mlf_get_model(mlf_run, device)
+        _ = generate_from_env(
+            rnn,
+            output,
+            device,
+            mlf_run,
+            num_graphs,
+            min_num_node,
+            max_num_node,
+            cfg.generation.test_batch_size,
+            cfg.generation.test_total_size,
+            save_dir,
+        )
+
+
+def generate_from_env(
+    rnn,
+    output,
+    device,
+    mlf_run,
+    num_graphs,
+    min_num_node,
+    max_num_node,
+    test_batch_size,
+    test_total_size,
+    save_dir=None,
+):
     min_num_node = (
         int(mlf_run.data.params["data.min_num_node"])
         if min_num_node is None
@@ -50,77 +74,81 @@ def generate(cfg, num_graphs, min_num_node, max_num_node, run_dir):
     )
     max_prev_node = int(mlf_run.data.params["data.max_prev_node"])
     num_layer = int(mlf_run.data.params["model.num_layer"])
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    with mlf.start_run(run_id=mlf_run.info.run_id):
-        rnn, output = mlf_get_model(mlf_run, device)
-        synthetic_graphs = synthesize_graph_sample(
-            rnn,
-            output,
-            min_num_node,
-            max_num_node,
-            max_prev_node,
-            num_layer,
-            device,
-            cfg.generation.test_batch_size,
-            cfg.generation.test_total_size if num_graphs is None else num_graphs,
-        )
-        makedirs(save_dir, exist_ok=True)
-        for i, g in enumerate(synthetic_graphs):
-            nx.write_gpickle(g, join(save_dir, f"{i}.gpickle"))
+    pred_graphs = synthesize_graph_sample(
+        rnn,
+        output,
+        min_num_node,
+        max_num_node,
+        max_prev_node,
+        num_layer,
+        device,
+        test_batch_size,
+        test_total_size if num_graphs is None else num_graphs,
+    )
+    if save_dir is None:
+        # mlf_save_pickle(f"synthetic_graphs", f"model_dir", pred_graphs)
+        pass
+    else:
+        save_graph_dir = join(save_dir, "synthetic_graphs")
+        makedirs(save_graph_dir, exist_ok=True)
+        for i, g in enumerate(pred_graphs):
+            nx.write_gpickle(g, join(save_graph_dir, f"{i}.gpickle"))
+    return pred_graphs
 
 
-def eval(exp_name, metrics, seed, baseline, n_samples, save_dir):
+def evaluate(cfg, num_graphs, run_dir):
     mmd_data = {}
-    mmd_data["from"] = []
+    mmd_data["run_id"] = []
+    mmd_data["for"] = []
     mmd_data["metric"] = []
     mmd_data["value"] = []
-    mlf_fix_artifact_path()
-    if seed is not None:
-        random.seed(seed)
-        np.random.seed(seed)
-        rng = np.random.default_rng(seed)
-        torch.manual_seed(seed)
-    mlf_run = mlf_get_run(exp_name=exp_name, load_runs=True)
-    with mlf.start_run(run_id=mlf_run.info.run_id):
-        _, _, test_paths = mlf_get_data_paths()
-        print("Getting data graphs for test...")
-        test_data_graphs = [
-            from_gt_to_nx(gt.load_graph(p)) for p in test_paths if p.endswith(".xz.gt")
-        ]
-        get_metrics(
-            test_data_graphs,
-            metrics,
-            ["best_mmd_degree"],  # , "best_mmd_clustering"],
-            mlf_get_synthetic_graph,
-            n_samples,
-            mmd_data,
-            save_dir,
-            rng,
-            gen_name="ditg",
-        )
-    graph_set_paths = [
-        join("data", baseline, p)
-        for p in listdir(join("data", baseline))
-        if isdir(join("data", baseline, p))
-    ]
-    graph_fn = lambda s: [
-        nx.read_gpickle(join(s, "graphs", p))
-        for p in listdir(join(s, "graphs"))[:500]
-        if p.endswith(".gpickle")
-    ]
-    get_metrics(
-        test_data_graphs,
-        metrics,
-        graph_set_paths,
-        graph_fn,
-        n_samples,
-        mmd_data,
-        save_dir,
-        rng,
+    rng, mlf_run, _ = mlf_set_env(
+        cfg.evaluation.seed,
+        run_dir,
+        cfg.mlflow.exp_name,
+        load_runs=True,
+        fix_path=True,
     )
-    mmd_data = pd.DataFrame(mmd_data)
-    mmd_data.to_csv("all_values_mmd.csv", index=False)
-    # plot_graphs(mmd_data, save_dir)
+    with mlf.start_run(run_id=mlf_run.info.run_id):
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        models = mlf_get_all_run_models(mlf_run, device)
+        for model_for, (rnn, output) in models.items():
+            pred_graphs = generate_from_env(
+                rnn,
+                output,
+                device,
+                mlf_run,
+                num_graphs,
+                None,
+                None,
+                cfg.evaluation.test_batch_size,
+                cfg.evaluation.test_total_size,
+            )
+            _, _, true_test_paths = mlf_get_data_paths()
+            true_test_graphs = [
+                from_gt_to_nx(gt.load_graph(p))
+                for p in tqdm(true_test_paths, desc="Getting graphs for test")
+                if p.endswith(".xz.gt")
+            ]
+            mmd_values, _, _ = get_metrics(
+                true_test_graphs,
+                pred_graphs,
+                cfg.evaluation.metrics,
+                cfg.evaluation.n_bootstrap_samples,
+                rng,
+            )
+            for metric in cfg.evaluation.metrics:
+                mmd_data["run_id"].extend(
+                    [f"{mlf_run.info.run_id}"] * cfg.evaluation.n_bootstrap_samples
+                )
+                mmd_data["for"].extend([model_for] * cfg.evaluation.n_bootstrap_samples)
+                mmd_data["metric"].extend([metric] * cfg.evaluation.n_bootstrap_samples)
+                mmd_data["value"].extend(mmd_values[metric])
+        mmd_data = pd.DataFrame(mmd_data)
+        mlf_save_text(
+            "mmd_data.csv", "evaluation", mmd_data.to_csv(index=False)
+        )
+        plot_metrics(mmd_data, "evaluation")
 
 
 def bootstrap_eval(true_graphs, pred_graphs, rng, metrics, n_samples=2000):
@@ -148,35 +176,11 @@ def bootstrap_eval(true_graphs, pred_graphs, rng, metrics, n_samples=2000):
     return mmd_means, mmd_ci, mmd_values
 
 
-def get_metrics(
-    true_graphs,
-    metrics,
-    keys,
-    graph_fn,
-    n_samples,
-    data_output,
-    save_dir,
-    rng,
-    gen_name=None,
-):
-    gen_names = (
-        [basename(key) for key in keys] if gen_name is None else [gen_name] * len(keys)
+def get_metrics(true_graphs, pred_graphs, metrics, n_samples, rng):
+    mmd_means, mmd_ci, mmd_values = bootstrap_eval(
+        true_graphs, pred_graphs, rng, metrics, n_samples=n_samples
     )
-    for key, gen_name in zip(keys, gen_names):
-        graphs = graph_fn(key)
-        mmd_means, mmd_ci, mmd_values = bootstrap_eval(
-            true_graphs, graphs, rng, metrics, n_samples=n_samples
-        )
-        for name, obj in [
-            (f"{basename(key)}_ci.pkl", mmd_ci),
-            (f"{basename(key)}_means.pkl", mmd_means),
-            (f"{basename(key)}_values.pkl", mmd_values),
-        ]:
-            save_obj(name, join(save_dir, key), obj)
-        for metric in metrics:
-            data_output["value"].extend(mmd_values[metric])
-            data_output["metric"].extend([metric] * n_samples)
-            data_output["from"].extend([basename(key)] * n_samples)
+    return mmd_values, mmd_means, mmd_ci
 
 
 def synthesize_graph_sample(
@@ -260,7 +264,7 @@ def synthesize_graph(
     for i in range(test_batch_size):
         adj_pred = decode_adj(y_pred_long_data[i].cpu().numpy())
         subgraphs = get_graph(
-            adj_pred, min_num_node
+            adj_pred, min_num_node, max_num_node
         )  # get a graph from zero-padded adj
         G_pred_list.extend(subgraphs)
     return G_pred_list

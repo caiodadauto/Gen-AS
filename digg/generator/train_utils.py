@@ -89,7 +89,7 @@ def checkpoint(
         test_batch_size,
         test_total_size,
     )
-    mlf_save_pickle(f"synthetic_graphs", f"checkpoint-{idx}", pred_graphs)
+    # mlf_save_pickle(f"synthetic_graphs", f"checkpoint-{idx}", pred_graphs)
     save_model(rnn, output, f"checkpoint-{idx}", raw_signatures)
     mlf_save_text("epoch.csv", f"checkpoint-{idx}", f"{epoch}\n")
     return pred_graphs

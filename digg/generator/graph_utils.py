@@ -22,7 +22,7 @@ def from_gt_to_nx(gt_graph):
     return nx_graph
 
 
-def get_graph(adj, min_num_node, max_num_nodes=np.infty):
+def get_graph(adj, min_num_node, max_num_node=np.infty):
     """
     get a graph from zero-padded adj
     :param adj:
@@ -36,6 +36,8 @@ def get_graph(adj, min_num_node, max_num_nodes=np.infty):
     G = nx.from_numpy_matrix(adj)
     connected_components = nx.connected_components(G)
     for node_set in connected_components:
-        if len(node_set) >= min_num_node:
+        if len(node_set) >= min_num_node: #and len(node_set) <= max_num_node:
             subgraphs.append(G.subgraph(node_set).copy())
+        # else:
+        #     print(len(node_set))
     return subgraphs

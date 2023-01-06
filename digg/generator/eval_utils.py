@@ -3,11 +3,11 @@ from os.path import join
 
 import torch
 import joblib
-import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from torch.autograd import Variable
 
+from digg.generator.mlf_utils import mlf_save_figure 
 
 def sample_sigmoid(y, sample, device, thresh=0.5, sample_time=2):
     """
@@ -52,25 +52,21 @@ def save_obj(name, save_dir, obj):
         joblib.dump(obj, f)
 
 
-def plot_graphs(data, save_dir):
-    if isinstance(data, str):
-        data = pd.read_csv(join(save_dir, data))
-    save_dir = join(save_dir, "imgs")
-    makedirs(save_dir, exist_ok=True)
-    plot(data, False, save_dir, sns.boxplot, "box_plot")
-    plot(data, True, save_dir, sns.boxplot, "box_plot")
-    plot(data, False, save_dir, sns.barplot, "bar_plot", capsize=0.2)
-    plot(data, True, save_dir, sns.barplot, "bar_plot", capsize=0.2)
+def plot_metrics(data, artifact_path):
+    plot(data, False, sns.boxplot, "box_plot", artifact_path)
+    plot(data, True, sns.boxplot, "box_plot", artifact_path)
+    plot(data, False, sns.barplot, "bar_plot", artifact_path, capsize=0.2)
+    plot(data, True, sns.barplot, "bar_plot", artifact_path, capsize=0.2)
 
 
-def plot(data, log, save_dir, plot_fn, name, **kwargs):
+def plot(data, log, plot_fn, name, artifact_path, **kwargs):
     fig = plt.figure(figsize=(15, 8), dpi=200)
     ax = fig.subplots(1, 1, sharey=False)
-    plot_fn(x="from", y="value", hue="metric", data=data, ax=ax, **kwargs)
+    plot_fn(x="for", y="value", hue="metric", data=data, ax=ax, **kwargs)
     ax.xaxis.grid(True)
     ax.yaxis.grid(True)
     if log:
         ax.set_yscale("log")
-    plt.savefig(join(save_dir, f"{name}{'_log' if log else ''}.png"))
-    plt.savefig(join(save_dir, f"{name}{'_log' if log else ''}.pdf"))
+    mlf_save_figure(f"{name}{'_log' if log else ''}", artifact_path, "png")
+    mlf_save_figure(f"{name}{'_log' if log else ''}", artifact_path, "pdf")
     plt.close()

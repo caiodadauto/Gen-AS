@@ -29,7 +29,7 @@ def _clustering(graph, bins):
 
 
 def _betweenness(graph, bins):
-    graph_gt = from_nx_to_gt(graph)[0]
+    graph_gt = from_nx_to_gt(graph)
     node_bt = betweenness(graph_gt)[0].get_array()
     hist, _ = np.histogram(node_bt, bins=bins, range=(0.0, 1.0), density=False)
     hist_sum = np.sum(hist)
@@ -38,7 +38,7 @@ def _betweenness(graph, bins):
 
 
 def _pagerank(graph, bins):
-    graph_gt = from_nx_to_gt(graph)[0]
+    graph_gt = from_nx_to_gt(graph)
     pg = pagerank(graph_gt).get_array()
     hist, _ = np.histogram(pg, bins=bins, range=(0.0, 1.0), density=False)
     hist_sum = np.sum(hist)
@@ -47,7 +47,7 @@ def _pagerank(graph, bins):
 
 
 def _assortativity(graph):
-    graph_gt = from_nx_to_gt(graph)[0]
+    graph_gt = from_nx_to_gt(graph)
     ast, _ = assortativity(graph_gt, deg="out")
     if np.isnan(ast):
         ast == 0

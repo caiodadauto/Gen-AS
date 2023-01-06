@@ -1,10 +1,14 @@
-import os
 import re
 import joblib
 import tempfile
+import random
+from datetime import datetime
+from os.path import join, abspath
+from os import getcwd, walk, listdir
 
 import yaml
 import torch
+import numpy as np
 import mlflow as mlf
 import matplotlib.pyplot as plt
 from omegaconf import DictConfig, ListConfig
@@ -30,7 +34,7 @@ def _explore_recursive(parent_name, element):
 
 def mlf_save_pickle(name, artifact_path, obj):
     with tempfile.TemporaryDirectory() as temp_dir:
-        tmp_path = os.path.join(temp_dir, f"{name}.pkl")
+        tmp_path = join(temp_dir, f"{name}.pkl")
         with open(tmp_path, "wb") as f:
             joblib.dump(obj, f)
         mlf.log_artifact(tmp_path, artifact_path=artifact_path)
@@ -38,15 +42,15 @@ def mlf_save_pickle(name, artifact_path, obj):
 
 def mlf_save_text(name, artifact_path, obj):
     with tempfile.TemporaryDirectory() as temp_dir:
-        tmp_path = os.path.join(temp_dir, f"{name}")
+        tmp_path = join(temp_dir, f"{name}")
         with open(tmp_path, "w") as f:
             f.write(obj)
         mlf.log_artifact(tmp_path, artifact_path=artifact_path)
 
 
-def mlf_save_figure(name, artifact_path):
+def mlf_save_figure(name, artifact_path, ext):
     with tempfile.TemporaryDirectory() as temp_dir:
-        tmp_path = os.path.join(temp_dir, f"{name}.png")
+        tmp_path = join(temp_dir, f"{name}.{ext}")
         plt.savefig(tmp_path)
         mlf.log_artifact(tmp_path, artifact_path)
     plt.close()
@@ -68,28 +72,26 @@ def mlf_get_data_paths():
     paths = {}
     stages = ["train", "validation", "test"]
     for stage in stages:
-        paths[stage] = mlf_load_text(
-            os.path.join("graphs", f"{stage}_graphs.csv")
-        )
+        paths[stage] = mlf_load_text(join("graphs", f"{stage}_graphs.csv"))
     return paths["train"], paths["validation"], paths["test"]
 
 
 def mlf_get_all_checkpoints():
     path = mlf.get_artifact_uri().split(":")[-1]
-    checkpoint_names = [p for p in os.listdir(path) if re.match(r"(checkpoint_).+", p)]
+    checkpoint_names = [p for p in listdir(path) if re.match(r"(checkpoint_).+", p)]
     return checkpoint_names
 
 
 def mlf_get_epoch(stage):
-    return int(mlf_load_text(os.path.join(stage, "epoch.csv"))[0])
+    return int(mlf_load_text(join(stage, "epoch.csv"))[0])
 
 
 def mlf_get_best_value(metric):
-    return float(mlf_load_text(os.path.join(f"best_mmd_{metric}", "best_value.csv"))[0])
+    return float(mlf_load_text(join(f"best_mmd_{metric}", "best_value.csv"))[0])
 
 
 def mlf_get_synthetic_graph(stage):
-    return mlf_load_pickle(os.path.join(stage, "synthetic_graphs"))
+    return mlf_load_pickle(join(stage, "synthetic_graphs"))
 
 
 def mlf_get_model(run, device):
@@ -100,14 +102,31 @@ def mlf_get_model(run, device):
     idx = int(input("Choose the number of the desired model: "))
     model_uri = f"runs:/{run.info.run_id}/best_{metrics[idx]}"
     rnn = mlf.pytorch.load_model(
-        os.path.join(model_uri, f"rnn"), map_location=torch.device(device)
+        join(model_uri, f"rnn"), map_location=torch.device(device)
     )
     output = mlf.pytorch.load_model(
-        os.path.join(model_uri, f"output"), map_location=torch.device(device)
+        join(model_uri, f"output"), map_location=torch.device(device)
     )
     rnn.device = device
     output.device = device
-    return rnn, output
+    return rnn, output, f"best_{metrics[idx]}"
+
+
+def mlf_get_all_run_models(run, device):
+    models = {}
+    metrics = [k for k in run.data.metrics.keys() if k.startswith("mmd")]
+    for m in metrics:
+        model_uri = f"runs:/{run.info.run_id}/best_{m}"
+        rnn = mlf.pytorch.load_model(
+            join(model_uri, f"rnn"), map_location=torch.device(device)
+        )
+        output = mlf.pytorch.load_model(
+            join(model_uri, f"output"), map_location=torch.device(device)
+        )
+        rnn.device = device
+        output.device = device
+        models[f"best_{m}"] = (rnn, output)
+    return models
 
 
 def mlf_get_run(
@@ -184,19 +203,39 @@ def mlf_fix_artifact_path():
     def update_artifact_path(meta, key):
         if key in meta:
             artifact_path = meta[key]
-            new_artifact_path = os.path.join(
+            new_artifact_path = join(
                 "file://" + cwd, artifact_path[artifact_path.find("mlruns") :]
             )
             meta[key] = new_artifact_path
 
-    cwd = os.path.abspath(os.getcwd())
-    for root, _, files in os.walk(os.path.join(cwd, "mlruns")):
+    cwd = abspath(getcwd())
+    for root, _, files in walk(join(cwd, "mlruns")):
         for f_name in files:
             if f_name == "meta.yaml":
-                path = os.path.join(cwd, "mlruns", root, f_name)
+                path = join(cwd, "mlruns", root, f_name)
                 with open(path, "r") as f:
                     meta = yaml.safe_load(f)
                 update_artifact_path(meta, "artifact_location")
                 update_artifact_path(meta, "artifact_uri")
                 with open(path, "w") as f:
                     meta = yaml.dump(meta, f)
+
+
+def mlf_set_env(
+    seed, run_dir, exp_name, root_dir=None, fix_path=False, load_runs=False, **kwargs
+):
+    save_dir = (
+        None
+        if root_dir is None
+        else join(root_dir, datetime.strftime(datetime.now(), "%y%m%d%H%M%S"))
+    )
+    _ = mlf_fix_artifact_path() if fix_path else None
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+    rng = np.random.default_rng(seed)
+    mlf_run = mlf_get_run(
+        run_dir=run_dir, exp_name=exp_name, load_runs=load_runs, **kwargs
+    )
+    return rng, mlf_run, save_dir

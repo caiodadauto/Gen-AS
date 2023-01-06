@@ -1,4 +1,3 @@
-import random
 import time as tm
 from functools import reduce
 
@@ -16,7 +15,7 @@ from digg.generator.evaluation import bootstrap_eval
 from digg.generator.model import PlainGRU
 from digg.generator.mlf_utils import (
     mlf_save_text,
-    mlf_get_run,
+    mlf_set_env,
     mlf_log_from_omegaconf_dict,
 )
 from digg.generator.train_utils import (
@@ -27,17 +26,10 @@ from digg.generator.train_utils import (
 
 
 def train(cfg, run_dir):
-    seed = cfg.training.seed
-    mlf_kwargs = cfg.mlflow
+    rng, mlf_run, _ = mlf_set_env(cfg.evaluation.seed, run_dir, **cfg.mlflow)
     data_kwargs = cfg.data
     model_kwargs = cfg.model
     train_kwargs = cfg.training
-    if seed is not None:
-        random.seed(seed)
-        np.random.seed(seed)
-        rng = np.random.default_rng(seed)
-        torch.manual_seed(seed)
-    mlf_run = mlf_get_run(run_dir=run_dir, **mlf_kwargs)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     with mlf.start_run(run_id=mlf_run.info.run_id):
         mlf_log_from_omegaconf_dict(cfg)

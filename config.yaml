@@ -16,7 +16,7 @@ data:
   max_prev_node: 246
   check_size: false
   inplace: false
-  source_path: 'data/'
+  source_path: 'data'
 model:
   hidden_size_rnn: 128 # Hidden size for main RNN. For small versions, 64 is recommended
   hidden_size_rnn_output: 16 # Hidden size for output RNN
@@ -41,10 +41,10 @@ generation:
   seed: 12345
   test_batch_size: 1
   test_total_size: 500
-  save_dir: 'synthetic_graphs'
+  save_dir: 'digg_generation'
 evaluation:
   seed: 12345
-  save_dir: 'data/evaluation'
-  baseline: 'baseline'
+  test_batch_size: 1
+  test_total_size: 500
   n_bootstrap_samples: 100
-  metrics: ["assortativity"] # "degree", "clustering", "betweenness", "pagerank"]
+  metrics: ["assortativity", "degree", "clustering", "betweenness", "pagerank"]
