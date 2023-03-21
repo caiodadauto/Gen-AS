@@ -5,13 +5,13 @@ import torch
 import numpy as np
 import networkx as nx
 import graph_tool as gt
-from tqdm import tqdm
 
+from digg.utils import ProgressBar
 from digg.generator.graph_utils import from_gt_to_nx
 from digg.generator.preprocessing import bfs_seq, encode_adj
 
 
-def split_data(graphs, rng, with_val=False, inplace=False):
+def split_data(graphs, rng, with_val=False, inplace=False, progress_bar_qt=None):
     num_graphs = len(graphs)
     graph_index = np.arange(num_graphs)
     test_size = int(0.15 * num_graphs)
@@ -24,21 +24,22 @@ def split_data(graphs, rng, with_val=False, inplace=False):
         list=[graphs._list[i] for i in graph_index[(test_size + val_size) :]],
         from_path=False,
         inplace=inplace,
-        ext="xz.gt"
+        ext="xz.gt",
+        progress_bar_qt=progress_bar_qt,
     )
     test_graphs = Graphs(
         list=[graphs._list[i] for i in graph_index[0:test_size]],
         from_path=False,
         inplace=inplace,
-        ext="xz.gt"
+        ext="xz.gt",
+        progress_bar_qt=progress_bar_qt,
     )
     val_graphs = Graphs(
-        list=[
-            graphs._list[i] for i in graph_index[test_size : (val_size + test_size)]
-        ],
+        list=[graphs._list[i] for i in graph_index[test_size : (val_size + test_size)]],
         from_path=False,
         inplace=inplace,
-        ext="xz.gt"
+        ext="xz.gt",
+        progress_bar_qt=progress_bar_qt,
     )
     return train_graphs, val_graphs, test_graphs
 
@@ -50,6 +51,7 @@ def create(
     min_num_nodes,
     max_num_nodes,
     check_size,
+    progress_bar_qt=None,
 ):
     graphs = []
     graphs = Graphs(
@@ -58,6 +60,7 @@ def create(
         min_num_nodes,
         max_num_nodes,
         check_size=check_size,
+        progress_bar_qt=progress_bar_qt,
     )
     # max_prev_node = 246  # Use None for compute estimation
     return graphs
@@ -74,7 +77,8 @@ class Graphs(MutableSequence):
         from_path=True,
         check_size=True,
         inplace=False,
-        ext="xz.gt"
+        ext="xz.gt",
+        progress_bar_qt=None,
     ):
         super(Graphs, self).__init__()
         self._list = []
@@ -84,9 +88,15 @@ class Graphs(MutableSequence):
                 max_num_node = 1000
             elif max_num_node is not None and min_num_node is None:
                 min_num_node = 0
-            for graph_name in tqdm(
-                os.listdir(source_path), desc="Loading data graphs"
-            ):
+            graph_names = os.listdir(source_path)
+            bar = ProgressBar(
+                total=len(graph_names),
+                desc="Loading data graphs",
+                progress_bar_qt=progress_bar_qt,
+            )
+            for graph_name in graph_names:
+                if progress_bar_qt is not None and progress_bar_qt.stop_running:
+                    break
                 if graph_name.endswith(f".{ext}"):
                     graph_path = os.path.join(source_path, graph_name)
                     if min_num_node is None and max_num_node is None:
@@ -98,15 +108,26 @@ class Graphs(MutableSequence):
                             self._list.append(graph_path)
                     else:
                         self._list.append(graph_path)
+                bar.update()
+            bar.close()
             self._list = self._list[:data_size]
             print(f"{data_size} graphs are being considered...")
         else:
             self._list = list if list is not None else []
         if self._inplace:
             self._graphs = []
-            for graph_path in tqdm(self._list, desc="Adding data graphs to memory"):
+            bar = ProgressBar(
+                len(self._list),
+                desc="Adding data graphs to memory",
+                progress_bar_qt=progress_bar_qt,
+            )
+            for graph_path in self._list:
+                if progress_bar_qt is not None and progress_bar_qt.stop_running:
+                    break
                 G = from_gt_to_nx(gt.load_graph(graph_path))
                 self._graphs.append(G)
+                bar.update()
+            bar.close()
 
     def __len__(self):
         return len(self._list)

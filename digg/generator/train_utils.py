@@ -77,6 +77,7 @@ def checkpoint(
     test_batch_size,
     test_total_size,
     raw_signatures,
+    progress_bar_qt=None,
 ):
     pred_graphs = synthesize_graph_sample(
         rnn,
@@ -88,6 +89,7 @@ def checkpoint(
         device,
         test_batch_size,
         test_total_size,
+        progress_bar_qt=progress_bar_qt,
     )
     # mlf_save_pickle(f"synthetic_graphs", f"checkpoint-{idx}", pred_graphs)
     save_model(rnn, output, f"checkpoint-{idx}", raw_signatures)

@@ -11,7 +11,7 @@ bash Mambaforge-$(uname)-$(uname -m).sh
 
 Once `poetry` and `mamba` have been installed, in the root directory of this project, do
 ```bash
-mamba create -n test --file conda-linux-64.lock
+mamba create -n digg --file conda-linux-64.lock
 poetry install
 ```
 This will install the package, create the CLI command `digg`, and add the default configuration file to `~/.config/digg_dggm/config.yaml`.

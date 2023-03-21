@@ -3,8 +3,8 @@ import os
 import numpy as np
 import networkx as nx
 import graph_tool as gt
-from tqdm import tqdm
 
+from digg.utils import ProgressBar
 from digg.generator.graph_utils import from_gt_to_nx
 
 
@@ -104,15 +104,19 @@ def decode_adj(adj_output):
     return adj_full
 
 
-def get_data_params(G_list, iter=20000, topk=10):
+def get_data_params(G_list, iter=20000, topk=10, progress_bar_qt=None):
     adj_all = []
     len_all = []
     for G in G_list:
         adj_all.append(np.asarray(nx.to_numpy_matrix(G)))
         len_all.append(G.number_of_nodes())
     max_prev_node = []
-    bar = tqdm(total=iter, desc="Estimating max prev")
+    bar = ProgressBar(
+        total=iter, desc="Estimating max prev", progress_bar_qt=progress_bar_qt
+    )
     for _ in range(iter):
+        if progress_bar_qt is not None and progress_bar_qt.stop_running:
+            break
         adj_idx = np.random.randint(len(adj_all))
         adj_copy = adj_all[adj_idx].copy()
         # print('Graph size', adj_copy.shape[0])
@@ -135,7 +139,9 @@ def get_data_params(G_list, iter=20000, topk=10):
     return max_prev_node, max(len_all)
 
 
-def get_graph_params(source_path, data_size, min_num_node, max_num_node):
+def get_graph_params(
+    source_path, data_size, min_num_node, max_num_node, progress_bar_qt=None
+):
     """
     get graph dataset information
     :param source_path: path to data graph in gt format
@@ -144,11 +150,15 @@ def get_graph_params(source_path, data_size, min_num_node, max_num_node):
     :return:
     """
     G_list = []
-    bar = tqdm(total=data_size, desc="Loading graph")
+    bar = ProgressBar(
+        total=data_size, desc="Loading graph", progress_bar_qt=progress_bar_qt
+    )
     min_num_node = 0 if min_num_node is None else min_num_node
     max_num_node = 1000 if max_num_node is None else max_num_node
     graph_names = [p for p in os.listdir(source_path) if p.endswith(".xz.gt")]
     for name in graph_names[0:data_size]:
+        if progress_bar_qt is not None and progress_bar_qt.stop_running:
+            break
         graph_path = os.path.join(source_path, name)
         g = from_gt_to_nx(gt.load_graph(graph_path))
         num_nodes = g.number_of_nodes()
@@ -156,4 +166,4 @@ def get_graph_params(source_path, data_size, min_num_node, max_num_node):
             G_list.append(g)
         bar.update()
     bar.close()
-    return get_data_params(G_list)
+    return get_data_params(G_list, progress_bar_qt)

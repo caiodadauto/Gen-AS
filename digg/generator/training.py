@@ -4,7 +4,6 @@ from functools import reduce
 import torch
 import numpy as np
 import mlflow as mlf
-from tqdm import tqdm
 from torch import optim
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import MultiStepLR
@@ -13,6 +12,7 @@ from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
 from digg.generator.loading import create, split_data, GraphSequenceSampler
 from digg.generator.evaluation import bootstrap_eval
 from digg.generator.model import PlainGRU
+from digg.utils import ProgressBar
 from digg.generator.mlf_utils import (
     mlf_save_text,
     mlf_set_env,
@@ -25,11 +25,11 @@ from digg.generator.train_utils import (
 )
 
 
-def train(cfg, run_dir):
-    rng, mlf_run, _ = mlf_set_env(cfg.evaluation.seed, run_dir, **cfg.mlflow)
+def train(cfg, run_dir, progress_bar_qt=None):
     data_kwargs = cfg.data
     model_kwargs = cfg.model
     train_kwargs = cfg.training
+    rng, mlf_run, _ = mlf_set_env(train_kwargs.seed, run_dir, **cfg.mlflow)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     with mlf.start_run(run_id=mlf_run.info.run_id):
         mlf_log_from_omegaconf_dict(cfg)
@@ -39,12 +39,14 @@ def train(cfg, run_dir):
             data_kwargs.min_num_node,
             data_kwargs.max_num_node,
             data_kwargs.check_size,
+            progress_bar_qt=progress_bar_qt,
         )
         train_graphs, val_graphs, test_graphs = split_data(
             graphs,
             rng,
             with_val=True,
             inplace=data_kwargs.inplace,
+            progress_bar_qt=progress_bar_qt,
         )
         for stage, s_graphs in [
             ("train", train_graphs),
@@ -105,7 +107,10 @@ def train(cfg, run_dir):
             max_num_node=data_kwargs.max_num_node,
             max_prev_node=data_kwargs.max_prev_node,
             train_kwargs=train_kwargs,
+            progress_bar_qt=progress_bar_qt,
         )
+        if progress_bar_qt is not None:
+            progress_bar_qt.stop_running = False
 
 
 def run_training(
@@ -120,6 +125,7 @@ def run_training(
     max_num_node,
     max_prev_node,
     train_kwargs,
+    progress_bar_qt,
 ):
     idx = 0
     epoch = 1
@@ -135,6 +141,8 @@ def run_training(
     for m in train_kwargs.metrics:
         best_mmd_values[m] = 0
     while epoch <= train_kwargs.num_epochs:
+        if progress_bar_qt is not None and progress_bar_qt.stop_running:
+            break
         time_start = tm.time()
         avg_loss, raw_signatures = epoch_training(
             epoch,
@@ -147,6 +155,7 @@ def run_training(
             scheduler_rnn,
             scheduler_output,
             device,
+            progress_bar_qt,
         )
         time_end = tm.time()
         mlf.log_metric("loss", avg_loss.item(), step=epoch)
@@ -168,6 +177,7 @@ def run_training(
                 train_kwargs.test_batch_size,
                 train_kwargs.test_total_size,
                 raw_signatures,
+                progress_bar_qt=progress_bar_qt,
             )
             mean_values, _, _ = bootstrap_eval(
                 val_graphs,
@@ -175,6 +185,7 @@ def run_training(
                 rng,
                 train_kwargs.metrics,
                 n_samples=train_kwargs.n_bootstrap_samples,
+                progress_bar_qt=progress_bar_qt,
             )
             for m in train_kwargs.metrics:
                 if mean_values[m] > best_mmd_values[m]:
@@ -203,12 +214,21 @@ def epoch_training(
     scheduler_rnn,
     scheduler_output,
     device,
+    progress_bar_qt,
 ):
     loss_sum = 0
     rnn.train()
     output.train()
-    bar = tqdm(total=len(data_loader), desc=f"Epoch {epoch}: Batches")
+    n_batches = len(data_loader)
+    bar = ProgressBar(
+        total=n_batches,
+        desc=f"Epoch {epoch}",
+        progress_bar_qt=progress_bar_qt,
+    )
+    bar.set_sufix(f"0 / {n_batches} batches")
     for batch_idx, data in enumerate(data_loader):
+        if progress_bar_qt is not None and progress_bar_qt.stop_running:
+            break
         rnn.zero_grad()
         output.zero_grad()
         x_unsorted = data["x"].float()
@@ -285,9 +305,19 @@ def epoch_training(
 
         feature_dim = y.size(1) * y.size(2)
         loss_sum += loss.data * feature_dim
+        bar.set_sufix(f"{batch_idx} / {n_batches} batches")
         bar.update()
     bar.close()
     return loss_sum / (batch_idx + 1), {
         "rnn": [x.cpu().detach().numpy(), _h.cpu().detach().numpy()],
         "output": [output_x.cpu().detach().numpy(), _y_pred.cpu().detach().numpy()],
     }
+
+
+# def toy_training(params, progress_bar):
+#     from time import sleep
+#     print(params)
+#     progress_bar.setMaximum(10)
+#     for i in range(10):
+#         # sleep(1)
+#         progress_bar.setValue(i + 1)

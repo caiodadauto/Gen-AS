@@ -7,9 +7,9 @@ import pandas as pd
 import mlflow as mlf
 import networkx as nx
 import graph_tool as gt
-from tqdm import tqdm
 from torch.autograd import Variable
 
+from digg.utils import ProgressBar
 from digg.generator.metrics import get_mmd
 from digg.generator.preprocessing import decode_adj
 from digg.generator.eval_utils import sample_sigmoid, plot_metrics
@@ -24,7 +24,9 @@ from digg.generator.mlf_utils import (
 )
 
 
-def generate(cfg, num_graphs, min_num_node, max_num_node, run_dir):
+def generate(
+    cfg, num_graphs, min_num_node, max_num_node, run_dir, progress_bar_qt=None
+):
     _, mlf_run, save_dir = mlf_set_env(
         cfg.generation.seed,
         run_dir,
@@ -47,6 +49,7 @@ def generate(cfg, num_graphs, min_num_node, max_num_node, run_dir):
             cfg.generation.test_batch_size,
             cfg.generation.test_total_size,
             save_dir,
+            progress_bar_qt=progress_bar_qt,
         )
 
 
@@ -61,6 +64,7 @@ def generate_from_env(
     test_batch_size,
     test_total_size,
     save_dir=None,
+    progress_bar_qt=None,
 ):
     min_num_node = (
         int(mlf_run.data.params["data.min_num_node"])
@@ -84,6 +88,7 @@ def generate_from_env(
         device,
         test_batch_size,
         test_total_size if num_graphs is None else num_graphs,
+        progress_bar_qt=progress_bar_qt,
     )
     if save_dir is None:
         # mlf_save_pickle(f"synthetic_graphs", f"model_dir", pred_graphs)
@@ -96,7 +101,7 @@ def generate_from_env(
     return pred_graphs
 
 
-def evaluate(cfg, num_graphs, run_dir):
+def evaluate(cfg, num_graphs, run_dir, progress_bar_qt=None):
     mmd_data = {}
     mmd_data["run_id"] = []
     mmd_data["for"] = []
@@ -123,13 +128,23 @@ def evaluate(cfg, num_graphs, run_dir):
                 None,
                 cfg.evaluation.test_batch_size,
                 cfg.evaluation.test_total_size,
+                progress_bar_qt=progress_bar_qt,
             )
             _, _, true_test_paths = mlf_get_data_paths()
-            true_test_graphs = [
-                from_gt_to_nx(gt.load_graph(p))
-                for p in tqdm(true_test_paths, desc="Getting graphs for test")
-                if p.endswith(".xz.gt")
-            ]
+
+            true_test_graphs = []
+            bar = ProgressBar(
+                len(true_test_paths),
+                desc="Getting graphs for test",
+                progress_bar_qt=progress_bar_qt,
+            )
+            for p in true_test_paths:
+                if progress_bar_qt is not None and progress_bar_qt.stop_running:
+                    break
+                if p.endswith(".xz.gt"):
+                    from_gt_to_nx(gt.load_graph(p))
+                bar.update()
+            bar.close()
             mmd_values, _, _ = get_metrics(
                 true_test_graphs,
                 pred_graphs,
@@ -145,13 +160,13 @@ def evaluate(cfg, num_graphs, run_dir):
                 mmd_data["metric"].extend([metric] * cfg.evaluation.n_bootstrap_samples)
                 mmd_data["value"].extend(mmd_values[metric])
         mmd_data = pd.DataFrame(mmd_data)
-        mlf_save_text(
-            "mmd_data.csv", "evaluation", mmd_data.to_csv(index=False)
-        )
+        mlf_save_text("mmd_data.csv", "evaluation", mmd_data.to_csv(index=False))
         plot_metrics(mmd_data, "evaluation")
 
 
-def bootstrap_eval(true_graphs, pred_graphs, rng, metrics, n_samples=2000):
+def bootstrap_eval(
+    true_graphs, pred_graphs, rng, metrics, n_samples=2000, progress_bar_qt=None
+):
     mmd_ci = {}
     mmd_means = {}
     mmd_values = {}
@@ -159,8 +174,12 @@ def bootstrap_eval(true_graphs, pred_graphs, rng, metrics, n_samples=2000):
     num_pred_graphs = len(pred_graphs)
     for metric in metrics:
         mmd_values[metric] = []
-    bar = tqdm(total=n_samples, desc="Bootstraping")
+    bar = ProgressBar(
+        total=n_samples, desc="Bootstrap sampling evaluation", progress_bar_qt=progress_bar_qt
+    )
     for _ in range(n_samples):
+        if progress_bar_qt is not None and progress_bar_qt.stop_running:
+            break
         sampled_data_idx = rng.choice(
             true_graph_idx, replace=True, size=num_pred_graphs
         )
@@ -193,10 +212,17 @@ def synthesize_graph_sample(
     device,
     test_batch_size,
     test_total_size,
+    progress_bar_qt=None,
 ):
     G_pred = []
-    bar = tqdm(total=test_total_size, desc="Creating synthetic samples")
+    bar = ProgressBar(
+        total=test_total_size,
+        desc="Creating synthetic samples",
+        progress_bar_qt=progress_bar_qt,
+    )
     while len(G_pred) < test_total_size:
+        if progress_bar_qt is not None and progress_bar_qt.stop_running:
+            break
         G_pred_step = synthesize_graph(
             rnn,
             output,
