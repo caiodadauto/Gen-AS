@@ -1,4 +1,4 @@
-name: digg
+name: dggi
 channels:
   - pytorch
   - conda-forge
@@ -8,6 +8,7 @@ dependencies:
   - python=3.10.9
   - pip
   - graph-tool=2.46
+  - pygraphviz=1.10
   - pyside6=6.4.2
   - pytorch::pytorch=1.13.0
   - pytorch-cuda=11.6

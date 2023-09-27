@@ -1,10 +1,9 @@
 [tool.poetry]
-name = "digg"
+name = "dggi"
 version = "0.1.0"
 description = ""
 authors = ["Caio Dadauto <caiodadauto@gmail.com>"]
 readme = "README.md"
-build = 'build.py'
 
 [tool.poetry.dependencies]
 python = "~3.10"
@@ -23,9 +22,15 @@ torch = "1.13.0"
 # pyside6 = "6.4.2"
 numpy = "1.23.5"
 
-[tool.poetry.scripts]
-digg = "digg.cli.app:main"
+[tool.pyright]
+reportGeneralTypeIssues = false
 
+[tool.poetry.scripts]
+dggi = "dggi.cli.app:main"
+dggi-gui = "dggi.gui.app:main"
+
+[tool.poetry.build]
+script = "build.py"
 
 [build-system]
 requires = ["poetry-core"]
