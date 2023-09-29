@@ -8,7 +8,7 @@ import pandas as pd
 import mlflow as mlf
 import matplotlib.pyplot as plt
 from omegaconf import OmegaConf
-from PySide6.QtWidgets import QWidget, QFileDialog, QTreeWidgetItem, QMainWindow
+from PySide6.QtWidgets import QWidget, QTreeWidgetItem, QMainWindow
 from PySide6.QtCore import QThread, QObject, Signal, Slot, Qt, QSize
 from PySide6.QtGui import QIcon
 from matplotlib.figure import Figure
@@ -43,10 +43,6 @@ class EvaluationConfig(QWidget):
         self.spin_bs_samples_ev.setRange(1, 1e4)
         self.set_defaults()
         self.update_config()
-
-    # def search_ev_location(self):
-    #     dir_name = QFileDialog().getExistingDirectory(self)
-    #     self.line_save_loc_ev.setText(dir_name)
 
     def set_defaults(self):
         self.spin_seed_ev.setValue(self.global_config.default_cfg["evaluation"]["seed"])
@@ -224,10 +220,6 @@ class AppEvaluationWindow(QObject):
     #         ax.spines["left"].set_visible(False)
     #         plt.show()
     #         plt.savefig(file_name)
-
-    def search_graph_source(self):
-        dir_name = QFileDialog().getExistingDirectory(self.evaluation_config)
-        self.vis_ui.line_find_source_vis.setText(dir_name)
 
     def update_graph_paths(self, path):
         self.graph_idx = 0

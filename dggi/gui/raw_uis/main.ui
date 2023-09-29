@@ -1512,7 +1512,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="resources.qrc">
+                   <iconset>
                     <normaloff>:/icons/images/icons/icon_settings.png</normaloff>:/icons/images/icons/icon_settings.png</iconset>
                   </property>
                   <property name="iconSize">
@@ -1547,7 +1547,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="resources.qrc">
+                   <iconset>
                     <normaloff>:/icons/images/icons/icon_minimize.png</normaloff>:/icons/images/icons/icon_minimize.png</iconset>
                   </property>
                   <property name="iconSize">
@@ -1591,7 +1591,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="resources.qrc">
+                   <iconset>
                     <normaloff>:/icons/images/icons/icon_maximize.png</normaloff>:/icons/images/icons/icon_maximize.png</iconset>
                   </property>
                   <property name="iconSize">
@@ -1626,7 +1626,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="resources.qrc">
+                   <iconset>
                     <normaloff>:/icons/images/icons/icon_close.png</normaloff>:/icons/images/icons/icon_close.png</iconset>
                   </property>
                   <property name="iconSize">
@@ -2225,7 +2225,7 @@ QPushButton:pressed {
                              <string>  Visualization</string>
                             </property>
                             <property name="icon">
-                             <iconset resource="resources.qrc">
+                             <iconset>
                               <normaloff>:/icons/images/icons/icon_project_diagram.png</normaloff>:/icons/images/icons/icon_project_diagram.png</iconset>
                             </property>
                            </widget>
@@ -2647,7 +2647,7 @@ QTreeView::item:selected {
                                   <string> Save    </string>
                                  </property>
                                  <property name="icon">
-                                  <iconset resource="resources.qrc">
+                                  <iconset>
                                    <normaloff>:/icons/images/icons/cil-save.png</normaloff>:/icons/images/icons/cil-save.png</iconset>
                                  </property>
                                  <property name="iconSize">
@@ -2673,7 +2673,7 @@ QTreeView::item:selected {
                                   <string> Load    </string>
                                  </property>
                                  <property name="icon">
-                                  <iconset resource="resources.qrc">
+                                  <iconset>
                                    <normaloff>:/icons/images/icons/cil-cloud-upload.png</normaloff>:/icons/images/icons/cil-cloud-upload.png</iconset>
                                  </property>
                                  <property name="iconSize">
@@ -2699,7 +2699,7 @@ QTreeView::item:selected {
                                   <string> Restore</string>
                                  </property>
                                  <property name="icon">
-                                  <iconset resource="resources.qrc">
+                                  <iconset>
                                    <normaloff>:/icons/images/icons/cil-reload.png</normaloff>:/icons/images/icons/cil-reload.png</iconset>
                                  </property>
                                  <property name="iconSize">
@@ -3776,7 +3776,7 @@ QTreeView::item:selected {
                                              <string> Search</string>
                                             </property>
                                             <property name="icon">
-                                             <iconset resource="resources.qrc">
+                                             <iconset>
                                               <normaloff>:/icons/images/icons/cil-folder-open.png</normaloff>:/icons/images/icons/cil-folder-open.png</iconset>
                                             </property>
                                             <property name="iconSize">
@@ -4240,7 +4240,7 @@ QTreeView::item:selected {
                                           <string> Search</string>
                                          </property>
                                          <property name="icon">
-                                          <iconset resource="resources.qrc">
+                                          <iconset>
                                            <normaloff>:/icons/images/icons/cil-folder-open.png</normaloff>:/icons/images/icons/cil-folder-open.png</iconset>
                                          </property>
                                          <property name="iconSize">
@@ -4559,90 +4559,6 @@ QTreeView::item:selected {
                                          </property>
                                          <property name="text">
                                           <string>Pagerank</string>
-                                         </property>
-                                        </widget>
-                                       </item>
-                                      </layout>
-                                     </widget>
-                                    </item>
-                                    <item>
-                                     <widget class="QFrame" name="frame_70">
-                                      <property name="minimumSize">
-                                       <size>
-                                        <width>0</width>
-                                        <height>0</height>
-                                       </size>
-                                      </property>
-                                      <property name="frameShape">
-                                       <enum>QFrame::StyledPanel</enum>
-                                      </property>
-                                      <property name="frameShadow">
-                                       <enum>QFrame::Raised</enum>
-                                      </property>
-                                      <layout class="QGridLayout" name="gridLayout_14">
-                                       <property name="verticalSpacing">
-                                        <number>3</number>
-                                       </property>
-                                       <item row="1" column="0">
-                                        <widget class="QLineEdit" name="line_data_path_ev">
-                                         <property name="minimumSize">
-                                          <size>
-                                           <width>0</width>
-                                           <height>25</height>
-                                          </size>
-                                         </property>
-                                         <property name="styleSheet">
-                                          <string notr="true">background-color: rgb(33, 37, 43);</string>
-                                         </property>
-                                         <property name="text">
-                                          <string/>
-                                         </property>
-                                         <property name="placeholderText">
-                                          <string>Type here</string>
-                                         </property>
-                                        </widget>
-                                       </item>
-                                       <item row="0" column="0" colspan="2">
-                                        <widget class="QLabel" name="label_data_path_ev">
-                                         <property name="text">
-                                          <string>Data Path</string>
-                                         </property>
-                                        </widget>
-                                       </item>
-                                       <item row="1" column="1">
-                                        <widget class="QPushButton" name="btn_data_path_ev">
-                                         <property name="minimumSize">
-                                          <size>
-                                           <width>150</width>
-                                           <height>25</height>
-                                          </size>
-                                         </property>
-                                         <property name="font">
-                                          <font>
-                                           <family>Segoe UI</family>
-                                           <pointsize>10</pointsize>
-                                           <italic>false</italic>
-                                           <bold>false</bold>
-                                          </font>
-                                         </property>
-                                         <property name="cursor">
-                                          <cursorShape>PointingHandCursor</cursorShape>
-                                         </property>
-                                         <property name="styleSheet">
-                                          <string notr="true">background-color: rgb(52, 59, 72);</string>
-                                         </property>
-                                         <property name="text">
-                                          <string> Search</string>
-                                         </property>
-                                         <property name="icon">
-                                          <iconset resource="resources.qrc">
-                                           <normaloff>:/icons/images/icons/cil-folder-open.png</normaloff>:/icons/images/icons/cil-folder-open.png</iconset>
-                                         </property>
-                                         <property name="iconSize">
-                                          <size>
-                                           <width>14</width>
-                                           <height>14</height>
-                                          </size>
                                          </property>
                                         </widget>
                                        </item>

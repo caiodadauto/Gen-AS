@@ -1,6 +1,16 @@
 # Deep-Generative Graphs for the Internet (DGGI)
 ---
 
+DGGI is a software initially designed to synthesize graphs that reproduce the structure observed in intra-AS networks.
+Under the hood, DGGI uses the model GraphRNN to generate the synthetic models.
+The pre-trained weights for intra-AS graphs generation are provided [here](), these weights were obtained through a training
+procedure using the dataset provided [here]().
+
+DGGI delivery an ease way to:
+1. train the model for a new dataset;
+2. generate graphs based on a trained model;
+3. evaluate different versions of a trained model; 
+
 ## 1. Installation
 DGGI installation relies on [poetry]() and [mamba](), both can be installed as follow:
 ```bash
@@ -11,10 +21,10 @@ bash Mambaforge-$(uname)-$(uname -m).sh
 
 Once `poetry` and `mamba` have been installed, in the root directory of this project, do
 ```bash
-mamba create -n dggi --file conda-linux-64.lock
+mamba env create -f environment.yaml
 poetry install
 ```
-This will install the package, create the CLI command `dggi`, and add the default configuration file to `~/.config/dggi_dggm/config.yaml`.
+This will install the package, add the default configuration file to `~/.config/dggi_dggm/config.yaml`, and create two CLI commands `dggi` and `dggi-gui`.
 
 ## 2. Configuration
 In order to define local configurations, the default configuration file just need to be copied
@@ -35,7 +45,7 @@ dggi generate
 ```
 
 ### 2.1 Generation
-To evaluate a previous tranined model, do
+To evaluate a previous trained model, do
 ```bash
 dggi evaluate
 ```

@@ -16,6 +16,8 @@
 
 # MAIN FILE
 # ///////////////////////////////////////////////////////////////
+from os.path import isfile
+
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
@@ -174,13 +176,14 @@ class MainWindow(QMainWindow):
                 self,
                 "Load config",
             )[0]
-            self.global_config.update_config(file_path)
-            self.training_config.set_defaults()
-            self.training_config.update_config()
-            self.generation_config.set_defaults()
-            self.generation_config.update_config()
-            self.evaluation_config.set_defaults()
-            self.evaluation_config.update_config()
+            if file_path is not None and isfile(file_path):
+                self.global_config.update_config(file_path)
+                self.training_config.set_defaults()
+                self.training_config.update_config()
+                self.generation_config.set_defaults()
+                self.generation_config.update_config()
+                self.evaluation_config.set_defaults()
+                self.evaluation_config.update_config()
 
     def configSelection(self, index):
         if index == 0:

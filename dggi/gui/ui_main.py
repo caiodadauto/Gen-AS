@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'mainJHdsJy.ui'
+## Form generated from reading UI file 'mainWDfNaF.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.4.2
 ##
@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QCheckBox, QCo
     QSizePolicy, QSpacerItem, QSpinBox, QStackedWidget,
     QTextEdit, QTreeWidget, QTreeWidgetItem, QVBoxLayout,
     QWidget)
-from . resources_rc import *
+from dggi.gui.resources_rc import *
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -2597,40 +2597,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_64.addWidget(self.frame_57)
 
-        self.frame_70 = QFrame(self.conf_ev_row)
-        self.frame_70.setObjectName(u"frame_70")
-        self.frame_70.setMinimumSize(QSize(0, 0))
-        self.frame_70.setFrameShape(QFrame.StyledPanel)
-        self.frame_70.setFrameShadow(QFrame.Raised)
-        self.gridLayout_14 = QGridLayout(self.frame_70)
-        self.gridLayout_14.setObjectName(u"gridLayout_14")
-        self.gridLayout_14.setVerticalSpacing(3)
-        self.line_data_path_ev = QLineEdit(self.frame_70)
-        self.line_data_path_ev.setObjectName(u"line_data_path_ev")
-        self.line_data_path_ev.setMinimumSize(QSize(0, 25))
-        self.line_data_path_ev.setStyleSheet(u"background-color: rgb(33, 37, 43);")
-
-        self.gridLayout_14.addWidget(self.line_data_path_ev, 1, 0, 1, 1)
-
-        self.label_data_path_ev = QLabel(self.frame_70)
-        self.label_data_path_ev.setObjectName(u"label_data_path_ev")
-
-        self.gridLayout_14.addWidget(self.label_data_path_ev, 0, 0, 1, 2)
-
-        self.btn_data_path_ev = QPushButton(self.frame_70)
-        self.btn_data_path_ev.setObjectName(u"btn_data_path_ev")
-        self.btn_data_path_ev.setMinimumSize(QSize(150, 25))
-        self.btn_data_path_ev.setFont(font)
-        self.btn_data_path_ev.setCursor(QCursor(Qt.PointingHandCursor))
-        self.btn_data_path_ev.setStyleSheet(u"background-color: rgb(52, 59, 72);")
-        self.btn_data_path_ev.setIcon(icon8)
-        self.btn_data_path_ev.setIconSize(QSize(14, 14))
-
-        self.gridLayout_14.addWidget(self.btn_data_path_ev, 1, 1, 1, 1)
-
-
-        self.verticalLayout_64.addWidget(self.frame_70)
-
         self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
         self.verticalLayout_64.addItem(self.verticalSpacer_2)
@@ -2700,7 +2666,7 @@ class Ui_MainWindow(object):
 "<p align=\"center\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; font-weight:700; color:#ff79c6;\">Interface</span></p>\n"
 "<p align=\"justify\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Interface created by <span style=\" font-style:italic;\">Wanderson M. Pimenta</span> and modified by <span style=\" font-style:italic;\">Caio Vinicius Dadauto</span>.</p>\n"
 "<p align=\"center\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; font-weight:700; color:#ff79c6;\">Cite</span></p></body></html>", None))
-        self.plainTextEdit_2.setPlainText(QCoreApplication.translate("MainWindow", u"@misc{dggi,\n"
+        self.plainTextEdit_2.setPlainText(QCoreApplication.translate("MainWindow", u"@misc{digg2023,\n"
 "      title={Data-driven Intra-Autonomous Systems Graph Generator}, \n"
 "      author={Caio Vinicius Dadauto and Nelson Luis Saldanha da Fonseca and Ricardo da Silva Torres},\n"
 "      year={2023},\n"
@@ -2809,9 +2775,5 @@ class Ui_MainWindow(object):
         self.label_metrics_ev_ev.setText(QCoreApplication.translate("MainWindow", u"Metrics to Eval", None))
         self.check_c_ev_ev.setText(QCoreApplication.translate("MainWindow", u"Clustering", None))
         self.check_pr_ev_ev.setText(QCoreApplication.translate("MainWindow", u"Pagerank", None))
-        self.line_data_path_ev.setText("")
-        self.line_data_path_ev.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Type here", None))
-        self.label_data_path_ev.setText(QCoreApplication.translate("MainWindow", u"Data Path", None))
-        self.btn_data_path_ev.setText(QCoreApplication.translate("MainWindow", u" Search", None))
     # retranslateUi
 

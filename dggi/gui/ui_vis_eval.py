@@ -17,7 +17,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QLabel,
     QMainWindow, QSizePolicy, QVBoxLayout, QWidget)
-from . resources_rc import *
+from dggi.gui.resources_rc import *
 
 class Ui_VisEvalWindow(object):
     def setupUi(self, VisEvalWindow):

@@ -1,6 +1,6 @@
 import yaml
 from os import getcwd, listdir
-from os.path import expanduser, join, dirname, basename
+from os.path import expanduser, join, dirname, basename, isfile
 
 import hydra
 from omegaconf import OmegaConf
