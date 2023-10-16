@@ -24,21 +24,21 @@ def split_data(graphs, rng, with_val=False, inplace=False, progress_bar_qt=None)
         list=[graphs._list[i] for i in graph_index[(test_size + val_size) :]],
         from_path=False,
         inplace=inplace,
-        ext="xz.gt",
+        ext="gt",
         progress_bar_qt=progress_bar_qt,
     )
     test_graphs = Graphs(
         list=[graphs._list[i] for i in graph_index[0:test_size]],
         from_path=False,
         inplace=inplace,
-        ext="xz.gt",
+        ext="gt",
         progress_bar_qt=progress_bar_qt,
     )
     val_graphs = Graphs(
         list=[graphs._list[i] for i in graph_index[test_size : (val_size + test_size)]],
         from_path=False,
         inplace=inplace,
-        ext="xz.gt",
+        ext="gt",
         progress_bar_qt=progress_bar_qt,
     )
     return train_graphs, val_graphs, test_graphs
@@ -77,7 +77,7 @@ class Graphs(MutableSequence):
         from_path=True,
         check_size=True,
         inplace=False,
-        ext="xz.gt",
+        ext="gt",
         progress_bar_qt=None,
     ):
         super(Graphs, self).__init__()

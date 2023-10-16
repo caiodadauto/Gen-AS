@@ -154,7 +154,7 @@ def evaluate(cfg, num_graphs, run_dir, mlf_run=None, progress_bar_qt=None):
         for p in true_test_paths:
             if progress_bar_qt is not None and progress_bar_qt.stop_running:
                 return None
-            if p.endswith(".xz.gt"):
+            if p.endswith(".gt"):
                 graph = from_gt_to_nx(gt.load_graph(p))
             else:
                 graph = nx.read_gpickle(p)

@@ -44,7 +44,13 @@ of this file will impact all runs of DGGI. To limit the scope of the configurati
 configuration should be copied to this location, so, every time DGGI runs in this location, the copied configuration will be
 considered, instead of default file in `~/.config/dggi_dggm`.
 
-The configuration parameters are detailed in the table below.
+Moreover, the parameters can also be configured using the Graphical User Interface (GUI) directly. In the GUI,
+the parameters can be verified and modified pressing the gear icon on the right corner of the interface, the figure below
+illustrate this behaviour.
+
+![cofnigurations](./docs/imgs/configurations.png)
+
+The configuration parameters are detailed in the following sections.
 
 ### 2.1. For Hydra
 | Parameter Name | Description                      | Default Value |
@@ -125,46 +131,106 @@ The configuration parameters are detailed in the table below.
 ## 2. Usage
 DGGI can be used either via command line or via user interface.
 
-### 2.1. Command Line
-#### 2.1.1. For Training
-To train a model from scratch, do
+
+### 2.1. For Training
+Every training process will require a graph dataset. For now,
+the graphs must be in [gt](https://graph-tool.skewed.de/static/doc/gt_format.html) format.
+Once the parameters are configured and the dataset located in the target location (`source_path`),
+the training procedure can be started by either Command Line Interface (CLI) or Graphical User Interface (GUI).
+
+During the training, the loss values for each epoch and the graph metrics for every evaluation can be veirfied
+accessing the [MLflow interface](https://mlflow.org/docs/latest/quickstart.html#view-mlflow-runs-and-experiments).
+This accessing can also be made via CLI and GUI. Using MLflow, information such as loss values, validation metrics, parameters set,
+the model weights for different checkouts and for the best validated models as well will be persisted by MLflow.
+All these information will be located in `./mlruns`.
+
+#### 2.1.1. Command Line Interface
+To train a model from scratch using the CLI, do
 ```bash
 dggi train
 ```
 
-#### 2.1.2. For Generation
-To generate synthetic graphs using a trained model, do
+The MLflow can be accessed using the following command:
 ```bash
-dggi generate
-```
-
-#### 2.1.3. For Evaluation
-To evaluate a previous trained model, do
-```bash
-dggi evaluate
+mlflow ui
 ```
 
 
-### 2.1. User Interface
+#### 2.1.2. Graphical User Interface
 On terminal, do
 ```bash
 dggi-gui
 ```
 
-#### 2.1.1. For Training
-To train a model from scratch, do
-```bash
-dggi train
-```
+In the GUI, the tab for training on the left menu should be selected, then, press `Run`. The MLflow
+interface can be opened through the hyper-link on the bottom of the training tab. The figure below, illustrate
+this tab.
+![training tab](./docs/imgs/train.png)
 
-#### 2.1.2. For Generation
+
+### 2.2. For Generation
+The generation of synthetic graphs requires a trained model, i.e., a generator. This trained model should be located
+as an experiment in the MLflow data located in `./mlruns`. For instance, the data required to synthesize intra-AS graphs
+can be downloaded [here]().
+
+Once the parameters are configured and the data for the trained model is located in `./mlruns`,
+the graph generation can be done via either CLI or GUI. All generated graphs will be persisted
+in `./save_dir/<RUN_TIMESTAMP>`, note that the use of the run timestamp avoid the overwritten of
+synthetic graphs from different runs.
+
+#### 2.2.1. Command Line Interface
 To generate synthetic graphs using a trained model, do
 ```bash
 dggi generate
 ```
 
-#### 2.1.3. For Evaluation
+#### 2.2.2. Graphical User Interface
+On terminal, do
+```bash
+dggi-gui
+```
+
+The tab for generation should be accessed on the left menu. On the center menu, select the generator to
+be used and, then, press `Generate Graphs`.
+The figure below, illustrate this tab.
+![training tab](./docs/imgs/generate.png)
+
+The synthetic graphs can be visualize pressing `Visualization`. This will open a new window, in which a target directory
+containing the synthetic graphs can be selected and these graphs can be visualized, the figure below gives an example of
+this window.
+![graph](./docs/imgs/graphs.png)
+
+
+### 2.3. For Evaluation
+DGGI also provide a practical way to verify how realistic are the synthetic graphs
+generate by a trained model. Similar to the generation, this evaluation requires the MLflow data
+for a one trained model, at least. Moreover, the original data used for training should be in the same
+location that they were during the training.
+
+To estimate how realistic is a generator, DGGI analysis the Maximum Mean Discrepancy (MMD) for the graph metrics listed
+in the parameter `evaluation.metrics`. More details about the MMD can be found in our [paper]().
+
+As for training and generation, the evaluation can be made via either CLI and GUI.
+
+#### 2.2.1. Command Line Interface
 To evaluate a previous trained model, do
 ```bash
 dggi evaluate
 ```
+
+All plots generate during the evaluation can be visualized through MLflow interface.
+
+#### 2.2.2. Graphical User Interface
+On terminal, do
+```bash
+dggi-gui
+```
+
+The tab for evaluation should be accessed on the left menu. On the center menu, select the generator to
+be used and, then, press `Evaluate`.
+The figure below, illustrate this tab.
+![training tab](./docs/imgs/generate.png)
+
+The plots can be visualized pressing `Visualization`. This will open a new window, in which the different plots can be selected.
+The figures below give three examples of the different plots that can be generated.
+![plots](./docs/imgs/evaluation_plots.png)

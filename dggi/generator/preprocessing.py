@@ -155,7 +155,7 @@ def get_graph_params(
     )
     min_num_node = 0 if min_num_node is None else min_num_node
     max_num_node = 1000 if max_num_node is None else max_num_node
-    graph_names = [p for p in os.listdir(source_path) if p.endswith(".xz.gt")]
+    graph_names = [p for p in os.listdir(source_path) if p.endswith(".gt")]
     for name in graph_names[0:data_size]:
         if progress_bar_qt is not None and progress_bar_qt.stop_running:
             break
