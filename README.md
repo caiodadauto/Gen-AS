@@ -1,11 +1,14 @@
+<p align="center">
+<img src="./dggi/gui/images/images/logo.png" width="20%"> <br>
+</p>
+
 # Deep-Generative Graphs for the Internet (DGGI)
----
 
 DGGI is a software initially designed to synthesize graphs that reproduce the structure observed in intra-AS networks.
-Under the hood, DGGI uses the model [GraphRNN]() to generate the synthetic graphs. [MLflow]() is used to track the
-quality of training process and to save the best models, and [Hydra]() is used to control the configuration parameters.
-The pre-trained generator for intra-AS graphs synthesizing are provided [here](), these training procedure uses the
-dataset provided [here](), which was introduced in the following paper:
+Under the hood, DGGI uses the model [GraphRNN](https://arxiv.org/abs/1802.08773) to generate the synthetic graphs. [MLflow](https://mlflow.org/) is used to track the
+quality of training process and to save the best models, and [Hydra](https://hydra.cc/) is used to control the configuration parameters.
+The pre-trained generator for intra-AS graphs synthesizing are provided [here](https://drive.google.com/file/d/1SavCRyWEzd1H48H39PUgtBWnAhrsExVe/view?usp=sharing), these training procedure uses the
+dataset provided [here](https://drive.google.com/file/d/1ZwMlMz4lYZIp4BYxhccdyI3kYIQEDjSn/view?usp=sharing), which was introduced in the following paper:
 ```
 title={Data-driven Intra-Autonomous Systems Graph Generator}
 author={Caio Vinicius Dadauto and Nelson Luis Saldanha da Fonseca and Ricardo da Silva Torres}
@@ -22,13 +25,13 @@ This software provides an easy way to:
 
 
 ## 1. Installation
-DGGI installation relies on [poetry]() and [mamba](), both can be installed as follow:
+DGGI installation relies on [poetry](https://python-poetry.org/) and [mamba](https://mamba.readthedocs.io/en/latest/index.html), both can be installed as follow:
 ```bash
 curl -sSL https://install.python-poetry.org | python3 -
 curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
 bash Mambaforge-$(uname)-$(uname -m).sh
 ```
-for more details about this installation process, check [here]() and [here]().
+for more details about this installation process.
 
 Once `poetry` and `mamba` have been installed, in the root directory of this project, do
 ```bash
@@ -171,7 +174,7 @@ this tab.
 ### 2.2. For Generation
 The generation of synthetic graphs requires a trained model, i.e., a generator. This trained model should be located
 as an experiment in the MLflow data located in `./mlruns`. For instance, the data required to synthesize intra-AS graphs
-can be downloaded [here]().
+can be downloaded [here](https://drive.google.com/file/d/1SavCRyWEzd1H48H39PUgtBWnAhrsExVe/view?usp=sharing).
 
 Once the parameters are configured and the data for the trained model is located in `./mlruns`,
 the graph generation can be done via either CLI or GUI. All generated graphs will be persisted
@@ -208,7 +211,7 @@ for a one trained model, at least. Moreover, the original data used for training
 location that they were during the training.
 
 To estimate how realistic is a generator, DGGI analysis the Maximum Mean Discrepancy (MMD) for the graph metrics listed
-in the parameter `evaluation.metrics`. More details about the MMD can be found in our [paper]().
+in the parameter `evaluation.metrics`. More details about the MMD can be found in our [paper](https://arxiv.org/abs/2308.05254).
 
 As for training and generation, the evaluation can be made via either CLI and GUI.
 
@@ -234,3 +237,19 @@ The figure below, illustrate this tab.
 The plots can be visualized pressing `Visualization`. This will open a new window, in which the different plots can be selected.
 The figures below give three examples of the different plots that can be generated.
 ![plots](./docs/imgs/evaluation_plots.png)
+
+## Acknowledgement
+* Logo:
+* GraphRNN:
+* GUI: 
+
+## Citation
+If you find this project useful, please cite
+```
+title={Data-driven Intra-Autonomous Systems Graph Generator}
+author={Caio Vinicius Dadauto and Nelson Luis Saldanha da Fonseca and Ricardo da Silva Torres}
+year={2023}
+eprint={2308.05254}
+archivePrefix={arXiv}"
+primaryClass={cs.NI}"
+```
