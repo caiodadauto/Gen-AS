@@ -49,7 +49,7 @@ considered, instead of default file in `~/.config/dggi_dggm`.
 
 Moreover, the parameters can also be configured using the Graphical User Interface (GUI) directly. In the GUI,
 the parameters can be verified and modified pressing the gear icon on the right corner of the interface, the figure below
-illustrate this behaviour.
+illustrate this behavior.
 
 ![cofnigurations](./docs/imgs/configurations.png)
 
@@ -201,7 +201,7 @@ The figure below, illustrate this tab.
 The synthetic graphs can be visualize pressing `Visualization`. This will open a new window, in which a target directory
 containing the synthetic graphs can be selected and these graphs can be visualized, the figure below gives an example of
 this window.
-![graph](./docs/imgs/graphs.png)
+![graph](./docs/imgs/graph.png)
 
 
 ### 2.3. For Evaluation
