@@ -318,7 +318,8 @@ def synthesize_graph_sample(
         )
         if save_dir is not None:
             for i, g in enumerate(G_pred_step):
-                nx.write_gpickle(g, join(save_graph_dir, f"{n_graphs + i}.gpickle"))
+                # nx.write_gpickle(g, join(save_graph_dir, f"{n_graphs + i}.gpickle"))
+                nx.write_gexf(g, join(save_graph_dir, f"{n_graphs + i}.gexf"))
         n_graphs += len(G_pred_step)
         delta = test_total_size - n_graphs
         if return_graphs:

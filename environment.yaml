@@ -15,3 +15,6 @@ dependencies:
 #
 # platforms:
 #   - linux-64
+#
+# pip install torch==1.13.0 works, but with cuda 11.6
+# mamba install graph-tool=2.46 pytorch=1.13.0
