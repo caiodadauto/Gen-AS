@@ -2666,13 +2666,15 @@ class Ui_MainWindow(object):
 "<p align=\"center\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; font-weight:700; color:#ff79c6;\">Interface</span></p>\n"
 "<p align=\"justify\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Interface created by <span style=\" font-style:italic;\">Wanderson M. Pimenta</span> and modified by <span style=\" font-style:italic;\">Caio Vinicius Dadauto</span>.</p>\n"
 "<p align=\"center\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:12pt; font-weight:700; color:#ff79c6;\">Cite</span></p></body></html>", None))
-        self.plainTextEdit_2.setPlainText(QCoreApplication.translate("MainWindow", u"@misc{digg2023,\n"
-"      title={Data-driven Intra-Autonomous Systems Graph Generator}, \n"
-"      author={Caio Vinicius Dadauto and Nelson Luis Saldanha da Fonseca and Ricardo da Silva Torres},\n"
-"      year={2023},\n"
-"      eprint={2308.05254},\n"
-"      archivePrefix={arXiv},\n"
-"      primaryClass={cs.NI}\n"
+        self.plainTextEdit_2.setPlainText(QCoreApplication.translate("MainWindow", u"@ARTICLE{10589568,\n"
+"author={Vinicius Dadauto, Caio and Fonseca, Nelson L. S. da and Torres, Ricardo da S.},\n"
+"journal={IEEE Transactions on Network and Service Management}, \n"
+"title={Data-Driven Intra-Autonomous Systems Graph Generator}, \n"
+"year={2024},\n"
+"volume={21},\n"
+"number={5},\n"
+"pages={5491-5504},\n"
+"doi={10.1109/TNSM.2024.3425508}\n"
 "}", None))
         self.titleRightInfo.setText("")
 #if QT_CONFIG(tooltip)

@@ -1302,14 +1302,16 @@ li.checked::marker { content: &quot;\2612&quot;; }
                    <enum>QPlainTextEdit::NoWrap</enum>
                   </property>
                   <property name="plainText">
-                   <string>@misc{digg2023,
-      title={Data-driven Intra-Autonomous Systems Graph Generator}, 
-      author={Caio Vinicius Dadauto and Nelson Luis Saldanha da Fonseca and Ricardo da Silva Torres},
-      year={2023},
-      eprint={2308.05254},
-      archivePrefix={arXiv},
-      primaryClass={cs.NI}
-}</string>
+                      <string>@ARTICLE{10589568,
+              author={Vinicius Dadauto, Caio and Fonseca, Nelson L. S. da and Torres, Ricardo da S.},
+              journal={IEEE Transactions on Network and Service Management}, 
+              title={Data-Driven Intra-Autonomous Systems Graph Generator}, 
+              year={2024},
+              volume={21},
+              number={5},
+              pages={5491-5504},
+              doi={10.1109/TNSM.2024.3425508}}
+                    </string>
                   </property>
                  </widget>
                 </item>

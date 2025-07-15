@@ -9,15 +9,7 @@ Under the hood, Gen-AS implements DGGI which uses the model [GraphRNN](https://a
 [MLflow](https://mlflow.org/) is used to track the
 quality of training process and to save the best models, and [Hydra](https://hydra.cc/) is used to control the configuration parameters.
 The pre-trained generator for intra-AS graphs synthesizing are provided [here](https://drive.google.com/file/d/1SavCRyWEzd1H48H39PUgtBWnAhrsExVe/view?usp=sharing), these training procedure uses the
-dataset provided [here](https://drive.google.com/file/d/1ZwMlMz4lYZIp4BYxhccdyI3kYIQEDjSn/view?usp=sharing), which was introduced in the following paper:
-```
-title={Data-driven Intra-Autonomous Systems Graph Generator}
-author={Caio Vinicius Dadauto and Nelson Luis Saldanha da Fonseca and Ricardo da Silva Torres}
-year={2023}
-eprint={2308.05254}
-archivePrefix={arXiv}"
-primaryClass={cs.NI}"
-```
+dataset provided [here](https://drive.google.com/file/d/1ZwMlMz4lYZIp4BYxhccdyI3kYIQEDjSn/view?usp=sharing), which was introduced in this [paper](https://doi.org/10.1109/TNSM.2024.3425508).
 
 This software provides an easy way to:
 1. train the model for any new graph dataset;
@@ -243,10 +235,14 @@ The figures below give three examples of the different plots that can be generat
 ## Citation
 If you find this project useful, please cite
 ```
-title={Data-driven Intra-Autonomous Systems Graph Generator}
-author={Caio Vinicius Dadauto and Nelson Luis Saldanha da Fonseca and Ricardo da Silva Torres}
-year={2023}
-eprint={2308.05254}
-archivePrefix={arXiv}"
-primaryClass={cs.NI}"
+@ARTICLE{10589568,
+  author={Vinicius Dadauto, Caio and Fonseca, Nelson L. S. da and Torres, Ricardo da S.},
+  journal={IEEE Transactions on Network and Service Management}, 
+  title={Data-Driven Intra-Autonomous Systems Graph Generator}, 
+  year={2024},
+  volume={21},
+  number={5},
+  pages={5491-5504},
+  doi={10.1109/TNSM.2024.3425508}
+}
 ```
