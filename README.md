@@ -240,11 +240,6 @@ The plots can be visualized pressing `Visualization`. This will open a new windo
 The figures below give three examples of the different plots that can be generated.
 ![plots](./docs/imgs/evaluation_plots.png)
 
-## Acknowledgement
-* Logo:
-* GraphRNN:
-* GUI: 
-
 ## Citation
 If you find this project useful, please cite
 ```
