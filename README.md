@@ -2,10 +2,11 @@
 <img src="./dggi/gui/images/images/logo.png" width="20%"> <br>
 </p>
 
-# Deep-Generative Graphs for the Internet (DGGI)
+# Generator of Internet Intra Autonomous Systems Topology (Gen-AS)
 
-DGGI is a software initially designed to synthesize graphs that reproduce the structure observed in intra-AS networks.
-Under the hood, DGGI uses the model [GraphRNN](https://arxiv.org/abs/1802.08773) to generate the synthetic graphs. [MLflow](https://mlflow.org/) is used to track the
+Gen-AS is a software initially designed to synthesize graphs that reproduce the structure observed in intra-AS networks.
+Under the hood, Gen-AS implements DGGI which uses the model [GraphRNN](https://arxiv.org/abs/1802.08773) to generate the synthetic graphs.
+[MLflow](https://mlflow.org/) is used to track the
 quality of training process and to save the best models, and [Hydra](https://hydra.cc/) is used to control the configuration parameters.
 The pre-trained generator for intra-AS graphs synthesizing are provided [here](https://drive.google.com/file/d/1SavCRyWEzd1H48H39PUgtBWnAhrsExVe/view?usp=sharing), these training procedure uses the
 dataset provided [here](https://drive.google.com/file/d/1ZwMlMz4lYZIp4BYxhccdyI3kYIQEDjSn/view?usp=sharing), which was introduced in the following paper:

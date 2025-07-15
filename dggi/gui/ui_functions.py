@@ -41,6 +41,7 @@ class MainWindow(QMainWindow):
     def __init__(self, app):
         QMainWindow.__init__(self)
         self.app = app
+        self.dragPos = QPoint()
 
         # SET AS GLOBAL WIDGETS
         # ///////////////////////////////////////////////////////////////
@@ -192,6 +193,13 @@ class MainWindow(QMainWindow):
             widgets.stackedWidget_2.setCurrentWidget(widgets.conf_gr)
         elif index == 2:
             widgets.stackedWidget_2.setCurrentWidget(widgets.conf_ev)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.dragPos = event.globalPos() - self.frameGeometry().topLeft()
+            event.accept()
+        else:
+            super().mousePressEvent(event)
 
     # BUTTONS CLICK
     # Post here your functions for clicked buttons
@@ -440,9 +448,10 @@ class UIFunctions(MainWindow):
                     UIFunctions.maximize_restore(self)
                 # MOVE WINDOW
                 if event.buttons() == Qt.LeftButton:
-                    self.move(self.pos() + event.globalPos() - self.dragPos)
-                    self.dragPos = event.globalPos()
+                    self.move(event.globalPos() - self.dragPos)
                     event.accept()
+                    # self.move(self.pos() + event.globalPos() - self.dragPos)
+                    # self.dragPos = event.globalPos()
 
             self.ui.titleRightInfo.mouseMoveEvent = moveWindow
 

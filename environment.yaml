@@ -1,20 +1,8 @@
-name: dggi
+name: gen_as
 channels:
-  - pytorch
   - conda-forge
-  - nvidia
-  - nodefaults
 dependencies:
   - python=3.10.9
   - pip
   - graph-tool=2.46
   - pygraphviz=1.10
-  - pyside6=6.4.2
-  - pytorch::pytorch=1.13.0
-  - pytorch-cuda=11.6
-#
-# platforms:
-#   - linux-64
-#
-# pip install torch==1.13.0 works, but with cuda 11.6
-# mamba install graph-tool=2.46 pytorch=1.13.0

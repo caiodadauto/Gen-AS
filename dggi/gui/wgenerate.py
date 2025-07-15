@@ -155,7 +155,7 @@ class AppGenerationWindow(QObject):
     def get_graph_paths(self, path):
         try:
             graph_paths = sorted(
-                [join(path, p) for p in listdir(path) if p.endswith(".gpickle")],
+                [join(path, p) for p in listdir(path) if p.endswith(".gexf")],
                 key=lambda s: int(basename(s).split(".")[0]),
             )
         except FileNotFoundError:
@@ -260,7 +260,7 @@ class AppGenerationWindow(QObject):
                     else 0
                 )
             graph_path = self.graph_paths[self.graph_idx]
-            graph = nx.read_gpickle(graph_path)
+            graph = nx.read_gexf(graph_path)
             pos = nx.nx_agraph.graphviz_layout(graph, prog="sfdp")
             nx.draw_networkx_nodes(
                 graph,
