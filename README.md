@@ -37,6 +37,7 @@ for more details about this installation process.
 Once `poetry` and `mamba` have been installed, in the root directory of this project, do
 ```bash
 mamba env create -f environment.yaml
+mamba activate gen_as
 poetry install
 ```
 This will install the required packages, add the default configuration file to `~/.config/dggi_dggm/config.yaml`,
